@@ -1,0 +1,29 @@
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+
+scrape_configs:
+  - job_name: 'neurolov'
+    scrape_interval: 5s
+    metrics_path: '/api/prometheus/metrics'
+    scheme: 'https'
+    static_configs:
+      - targets: ["website address"]
+remote_write:
+  - url: <grafana api>
+    basic_auth:
+      username: <grafana username>
+      password: <grafana key>
+
+
+
+
+# global:
+#   scrape_interval: 15s  # Default scrape interval for all jobs
+
+# scrape_configs:
+#   - job_name: 'nextjs_app'
+#     static_configs:
+#       - targets: ['localhost:3000']  # Make sure this points to the correct Next.js server address
