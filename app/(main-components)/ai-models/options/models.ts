@@ -1,5 +1,22 @@
 import type { AIModel } from '@/store/model-bag';
 
+export interface AIModel {
+  id: string;
+  name: string;
+  description: string;
+  type: string;
+  tags: string[];
+  iconBg: string;
+  features: string[];
+  defaultConfig: {
+    containerImage: string;
+    exposedPorts: number[];
+    minDisk: number;
+    minVram: number;
+  };
+  comingSoon?: boolean;
+}
+
 export const models: AIModel[] = [
   {
     id: 'flux-image',
@@ -15,27 +32,27 @@ export const models: AIModel[] = [
       'Custom style training'
     ],
     defaultConfig: {
-      containerImage: 'adhikjoshi/pytorch-gpulab:latest',
+      containerImage: 'adhikjoshi/flux-gpulab:latest',
       exposedPorts: [8080, 3754],
       minDisk: 10,
       minVram: 24
     }
   },
   {
-    id: 'fast-api',
-    name: 'Fast API',
-    description: 'High-speed API development and deployment with automatic documentation',
-    type: 'api',
-    tags: ['Fast', 'API'],
+    id: 'uncensored-chat',
+    name: 'Uncensored Chat',
+    description: 'Advanced chat model with unrestricted responses and flexible conversation capabilities',
+    type: 'chat',
+    tags: ['Chat', 'Unrestricted', 'AI'],
     iconBg: 'bg-yellow-500/10',
     features: [
-      'Automatic API documentation',
-      'High-performance endpoints',
-      'OpenAPI integration',
-      'Real-time validation'
+      'Unrestricted conversations',
+      'Context-aware responses',
+      'Multi-turn chat support',
+      'High token limit'
     ],
     defaultConfig: {
-      containerImage: 'adhikjoshi/fastapi-gpulab:latest',
+      containerImage: 'adhikjoshi/chat-gpulab:latest',
       exposedPorts: [8000],
       minDisk: 5,
       minVram: 8
@@ -59,7 +76,8 @@ export const models: AIModel[] = [
       exposedPorts: [8888],
       minDisk: 15,
       minVram: 16
-    }
+    },
+    comingSoon: true
   },
   {
     id: 'video-gen',
@@ -99,7 +117,8 @@ export const models: AIModel[] = [
       exposedPorts: [8000, 8080],
       minDisk: 30,
       minVram: 24
-    }
+    },
+    comingSoon: true
   },
   {
     id: 'music-gen',
@@ -142,26 +161,6 @@ export const models: AIModel[] = [
     }
   },
   {
-    id: 'pytorch-server',
-    name: 'PyTorch Server',
-    description: 'Deploy PyTorch models with high performance and scalability',
-    type: 'server',
-    tags: ['PyTorch', 'Server'],
-    iconBg: 'bg-orange-500/10',
-    features: [
-      'Model serving',
-      'Dynamic batching',
-      'GPU optimization',
-      'Model versioning'
-    ],
-    defaultConfig: {
-      containerImage: 'huggingface/transformers-pytorch-gpu:latest',
-      exposedPorts: [8888],
-      minDisk: 15,
-      minVram: 16
-    }
-  },
-  {
     id: '3d-server',
     name: '3D Server',
     description: '3D model generation and rendering with real-time capabilities',
@@ -186,39 +185,57 @@ export const models: AIModel[] = [
     name: 'Audio Server',
     description: 'Audio processing and generation with support for multiple formats',
     type: 'audio',
-    tags: ['Audio', 'Generation'],
-    iconBg: 'bg-green-500/10',
+    tags: ['Audio', 'Text-to-Speech'],
+    iconBg: 'bg-pink-500/10',
     features: [
-      'Audio generation',
-      'Format conversion',
-      'Real-time processing',
-      'Voice synthesis'
+      'Text to speech',
+      'Voice cloning',
+      'Audio enhancement',
+      'Format conversion'
     ],
     defaultConfig: {
       containerImage: 'adhikjoshi/audio-gpulab:latest',
       exposedPorts: [8080],
-      minDisk: 20,
+      minDisk: 10,
       minVram: 16
     }
   },
   {
     id: 'custom-model',
     name: 'Custom Model',
-    description: 'Deploy your own AI model with custom configuration',
+    description: 'Upload and use your own AI models',
     type: 'custom',
-    tags: ['Custom', 'Flexible'],
-    iconBg: 'bg-purple-500/10',
+    tags: ['Custom', 'Model'],
+    iconBg: 'bg-gray-500/10',
     features: [
-      'Custom model deployment',
-      'Flexible configuration',
-      'Resource optimization',
-      'API customization'
+      'Model Upload',
+      'Private/Public Models',
+      'Multiple Formats Support'
     ],
     defaultConfig: {
-      containerImage: 'nvidia/cuda:11.8.0-runtime-ubuntu22.04',
+      containerImage: 'adhikjoshi/custom-gpulab:latest',
       exposedPorts: [8080],
       minDisk: 10,
-      minVram: 8
+      minVram: 16
+    }
+  },
+  {
+    id: 'interior-architect',
+    name: 'Interior Architect',
+    description: 'Generate and customize interior designs from room images',
+    type: 'interior',
+    tags: ['Interior', 'Design'],
+    iconBg: 'bg-orange-500/10',
+    features: [
+      'Interior Design',
+      'Floor Planning',
+      'Room Decoration'
+    ],
+    defaultConfig: {
+      containerImage: 'adhikjoshi/interior-gpulab:latest',
+      exposedPorts: [8080],
+      minDisk: 10,
+      minVram: 16
     }
   }
 ];

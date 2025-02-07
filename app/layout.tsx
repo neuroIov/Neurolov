@@ -2,177 +2,77 @@
 
 import "./globals.css";
 import React from 'react';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useUser } from '@/lib/hooks/useUser';
-import { Bell, Search, Wallet, Settings, LayoutDashboard, Cpu, Brain, Coins, Users, Info, LogOut, User, Sparkles } from 'lucide-react';
-import { ThemeProvider } from "next-themes";
-import { Providers } from "@/components/providers";
-import { Toaster } from 'react-hot-toast';
 import { Inter } from 'next/font/google';
 import { AnimatePresence } from "framer-motion";
 import PageTransition from "@/components/page-transition";
 import { useRouter } from 'next/navigation';
+import { Sidebar } from '@/components/sidebar/sidebar';
+import { SidebarTabProvider } from '@/store/sidebar-tab';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { Toaster } from '@/components/ui/toaster';
+import { ToastProvider } from "@/components/ui/use-toast";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'GPU Marketplace', href: '/gpu-marketplace', icon: Cpu },
-  { name: 'AI Models', href: '/ai-models', icon: Brain },
-  { name: 'AI Agents', href: '/ai-agents', icon: Sparkles },
-  { name: 'Earnings', href: '/earnings', icon: Coins },
-  { name: 'Connect to Earn', href: '/connect-to-earn', icon: Cpu },
-  { name: 'Wallet', href: '/wallet', icon: Wallet },
-  { name: 'Community', href: '/community', icon: Users },
-  { name: 'Settings', href: '/settings', icon: Settings },
-  { name: 'More info', href: '/more-info', icon: Info },
-];
+import { Bell, User } from 'lucide-react';
 
 const localInter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
 });
 
+const PUBLIC_ROUTES = ['/login', '/signup', '/forgot-password'];
+
 function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [searchQuery, setSearchQuery] = React.useState('');
   const router = useRouter();
   const { user, loading, supabase } = useUser();
 
   const handleLogout = async () => {
     try {
-      // Clear client-side data first
-      localStorage.clear();
-      sessionStorage.clear();
-      
-      // Sign out first
-      await supabase.auth.signOut();
-      
-      // Then navigate to home page
-      router.replace('/');
-    } catch (error) {
-      console.error('Error during logout:', error);
-    }
-  };
-
-  // Don't show sidebar and header on the sign-in page
-  const isSignInPage = pathname === '/';
-  if (isSignInPage) {
-    return <div className="min-h-screen bg-gradient-to-b from-black to-gray-900">{children}</div>;
+    await supabase.auth.signOut();
+    router.push('/login');
+  } catch (error) {
+    console.error('Error logging out:', error);
   }
-  
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-black to-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-      </div>
-    );
-  }
+};
 
+// Show loading state
+if (loading) {
   return (
-    <div className="min-h-screen bg-black grid-background">
-      {/* Header */}
-      <header className="fixed top-0 z-50 w-full border-b border-gray-800 glass">
-        <div className="px-8 h-20 flex items-center justify-between">
-          <div className="flex items-center flex-1 space-x-12">
-            {/* Logo */}
-            <Link href="/" className="flex items-center">
-              <img src="/neurolov-logo.svg" alt="Neurolov" className="h-8" />
-            </Link>
-
-            {/* Search */}
-            <div className="relative flex-1 hidden md:block max-w-3xl">
-              <input
-                type="text"
-                placeholder="Search for something"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-12 px-5 py-2 bg-white/5 rounded-lg text-gray-300 focus:outline-none focus:ring-1 focus:ring-[#40A6FF] glass text-lg"
-              />
-              <Search className="absolute right-4 top-3.5 h-5 w-5 text-gray-400" />
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            {/* Notifications */}
-            <button className="p-3 hover:bg-white/5 rounded-lg glass glow">
-              <Bell className="h-6 w-6 text-gray-400" />
-            </button>
-
-            {/* Profile Dropdown - Only show when logged in */}
-            {user && (
-              <DropdownMenu>
-                <DropdownMenuTrigger className="p-2 hover:bg-white/5 rounded-lg glass glow">
-                  <User className="h-6 w-6 text-gray-400" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48 bg-black/90 backdrop-blur-xl border border-white/10">
-                  <DropdownMenuItem 
-                    className="text-gray-300 hover:text-white focus:text-white cursor-pointer"
-                    onClick={() => router.push('/auth/profile')}
-                  >
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    className="text-gray-300 hover:text-white focus:text-white cursor-pointer"
-                    onClick={handleLogout}
-                  >
-                    Log out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
-        </div>
-      </header>
-
-      {/* Main Layout */}
-      <div className="flex h-screen pt-20">
-        {/* Sidebar */}
-        <aside className="fixed left-0 top-20 h-[calc(100vh-5rem)] w-64 border-r border-gray-800 glass">
-          <nav className="h-full px-4 py-5">
-            <div className="space-y-1.5">
-              {navigation.map((item) => {
-                const Icon = item.icon;
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={`flex items-center space-x-3.5 px-4 py-3.5 text-base font-medium rounded-lg transition-colors ${
-                      isActive
-                        ? 'bg-white/10 text-white'
-                        : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                    }`}
-                  >
-                    <Icon className="h-5 w-5 flex-shrink-0" />
-                    <span>{item.name}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          </nav>
-        </aside>
-
-        {/* Main Content */}
-        <main className="flex-1 pl-64">
-          <div className="h-full">
-            <AnimatePresence mode="wait">
-              <PageTransition key={pathname}>
-                {/* Removed ComingSoonWrapper as we now handle overlays in individual components */}
-                {children}
-              </PageTransition>
-            </AnimatePresence>
-          </div>
-        </main>
-      </div>
+    <div className="flex h-screen items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
     </div>
   );
+}
+
+// Redirect to login for public routes if user is not authenticated
+if (!user && !PUBLIC_ROUTES.includes(pathname)) {
+  router.push('/login');
+  return null;
+}
+
+// Redirect to dashboard for public routes if user is authenticated
+if (user && PUBLIC_ROUTES.includes(pathname)) {
+  router.push('/');
+  return null;
+}
+
+return (
+  <div className="flex h-screen">
+    {!PUBLIC_ROUTES.includes(pathname) && <Sidebar />}
+    <main className="flex-1 overflow-y-auto">
+      <AnimatePresence mode="wait">
+        <PageTransition>{children}</PageTransition>
+      </AnimatePresence>
+    </main>
+  </div>
+);
 }
 
 export default function RootLayout({
@@ -181,25 +81,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={`${localInter.variable}`}
-    >
-      <body className="min-h-screen bg-black font-sans antialiased">
-        <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            enableSystem
-            disableTransitionOnChange
-        >
-          <Providers>
-            <MainLayout>
-              {children}
-            </MainLayout>
-            <Toaster />
-          </Providers>
-        </ThemeProvider>
+    <html lang="en" suppressHydrationWarning>
+      <head />
+      <body className={localInter.className}>
+        <ToastProvider>
+          <TooltipProvider>
+            <MainLayout>{children}</MainLayout>
+          </TooltipProvider>
+        </ToastProvider>
       </body>
     </html>
   );

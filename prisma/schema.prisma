@@ -1,0 +1,25 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model GenerationHistory {
+  id        String   @id @default(cuid())
+  userId    String   // Foreign key to your User model
+  prompt    String
+  style     String
+  width     Int
+  height    Int
+  guidance  Float
+  imageUrl  String
+  timestamp DateTime @default(now())
+
+  @@index([userId])
+}
