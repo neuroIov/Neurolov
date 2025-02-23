@@ -39,7 +39,7 @@
     "@types/md5": "^2.3.5",
     "@types/three": "0.160.0",
     "@upstash/redis": "^1.28.3",
-    "axios": "^1.6.5",
+    "axios": "^1.7.9",
     "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
