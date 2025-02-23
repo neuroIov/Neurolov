@@ -23,7 +23,11 @@ export const ComingSoonOverlay = ({
   className = ''
 }: ComingSoonOverlayProps) => {
   const { user } = useUser();
+
   const hasDevAccess = user?.email === 'nitish@neurolov.com,aitipamulaprapitesh02@gmail.com';
+
+  const hasDevAccess = user?.email === 'nitish@neurolov.com,bhaveshshukla2003@gmail.com';
+
 
   // If user is a dev, don't show the overlay
   if (hasDevAccess) {
