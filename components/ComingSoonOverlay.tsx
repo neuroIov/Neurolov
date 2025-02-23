@@ -4,7 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { BiLogoGmail } from 'react-icons/bi';
+// import { BiLogoGmail } from 'react-icons/bi';
 import { useUser } from '@/app/auth/useUser';
 
 interface ComingSoonOverlayProps {
@@ -24,9 +24,9 @@ export const ComingSoonOverlay = ({
 }: ComingSoonOverlayProps) => {
   const { user } = useUser();
 
-  const hasDevAccess = user?.email === 'nitish@neurolov.com,aitipamulaprapitesh02@gmail.com';
+  // const hasDevAccess = user?.email === 'nitish@neurolov.com,aitipamulaprapitesh02@gmail.com';
 
-  const hasDevAccess = user?.email === 'nitish@neurolov.com,bhaveshshukla2003@gmail.com';
+  const hasDevAccess = user?.email === 'nitish@neurolov.com,bhaveshshukla2003@gmail.com,aitipamulaprapitesh02@gmail.com';
 
 
   // If user is a dev, don't show the overlay
