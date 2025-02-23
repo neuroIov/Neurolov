@@ -15,15 +15,15 @@ interface ComingSoonOverlayProps {
   className?: string;
 }
 
-export const ComingSoonOverlay = ({ 
-  version = '2.0', 
+export const ComingSoonOverlay = ({
+  version = '2.0',
   title = 'Coming Soon',
   description = 'This feature will be available soon.',
   type = 'fixed',
   className = ''
 }: ComingSoonOverlayProps) => {
   const { user } = useUser();
-  const hasDevAccess = user?.email === 'nitish@neurolov.com';
+  const hasDevAccess = user?.email === 'nitish@neurolov.com,aitipamulaprapitesh02@gmail.com';
 
   // If user is a dev, don't show the overlay
   if (hasDevAccess) {
@@ -50,7 +50,7 @@ export const ComingSoonOverlay = ({
 
   if (type === 'hover') {
     return (
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0 }}
         whileHover={{ opacity: 1 }}
         className="absolute inset-0 flex items-center justify-center"

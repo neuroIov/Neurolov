@@ -21,7 +21,7 @@ import { useUser } from '@/app/auth/useUser';
 import { ComingSoonOverlay } from '@/components/ComingSoonOverlay';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
-const DEV_EMAILS = ['nitishmeswal@gmail.com', 'neohex262@gmail.com', 'test@example.com', 'jprateek961@gmail.com'];
+const DEV_EMAILS = ['nitishmeswal@gmail.com', 'neohex262@gmail.com', 'test@example.com', 'jprateek961@gmail.com', 'aitipamulaprapitesh02@gmail.com'];
 
 interface DeployedContainer {
   id: string;
@@ -197,7 +197,7 @@ export default function AIModelsPage() {
 
   const handleLike = async (modelId: string, event: React.MouseEvent) => {
     event.stopPropagation(); // Prevent card click
-    
+
     if (!user) {
       toast.error('Please sign in to like models');
       return;
@@ -256,7 +256,7 @@ export default function AIModelsPage() {
         router.push('/neurolov-image');
         return;
       }
-      
+
       if (model.id === 'music-ai') {
         router.push('/ai-models/music-ai');
         return;
@@ -281,19 +281,19 @@ export default function AIModelsPage() {
         router.push('/ai-models/deepfake');
         return;
       }
-      
+
       // Default handling for other models
       setSelectedModel(model);
-      
+
       // Get volume identifier
       const client = GPULabClient.getInstance();
       const volumeIdentifier = await client.getVolumeIdentifier();
-      
+
       // Store in localStorage
       localStorage.setItem('pytorch_deployment', JSON.stringify({
         volume_identifier: volumeIdentifier
       }));
-      
+
       router.push('/gpu-marketplace');
     } catch (error) {
       console.error('Error adding model to bag:', error);
@@ -338,7 +338,7 @@ export default function AIModelsPage() {
         try {
           const client = GPULabClient.getInstance();
           const containers = await client.getContainerList();
-          setDeployedContainers(containers.map(container => ({...container, model_type: container.model_type || 'text'})));
+          setDeployedContainers(containers.map(container => ({ ...container, model_type: container.model_type || 'text' })));
         } catch (error) {
           console.error('Error fetching containers:', error);
         }
@@ -358,7 +358,7 @@ export default function AIModelsPage() {
       toast.success('Model deleted successfully');
       // Refresh the list
       const containers = await client.getContainerList();
-      setDeployedContainers(containers.map(container => ({...container, model_type: container.model_type || 'text'})));
+      setDeployedContainers(containers.map(container => ({ ...container, model_type: container.model_type || 'text' })));
     } catch (error) {
       console.error('Error deleting model:', error);
       toast.error('Failed to delete model');
@@ -411,9 +411,9 @@ export default function AIModelsPage() {
                   {/* Model Image */}
                   <div className="relative h-40">
                     <Image
-                      src={`/ai-models/${model.id === 'neurolov-image' ? 'neuro-image-gen' : 
-                            model.id === 'text-to-video' || model.id === 'video' ? 'ai-video' : 
-                            model.id === 'music-ai' ? 'ai-music' : 
+                      src={`/ai-models/${model.id === 'neurolov-image' ? 'neuro-image-gen' :
+                        model.id === 'text-to-video' || model.id === 'video' ? 'ai-video' :
+                          model.id === 'music-ai' ? 'ai-music' :
                             'neuro-image-gen'}.png`}
                       alt={model.name}
                       fill
@@ -474,9 +474,9 @@ export default function AIModelsPage() {
                   {/* Model Image */}
                   <div className="relative h-40">
                     <Image
-                      src={`/ai-models/${container.model_name === 'neurolov-image' ? 'neuro-image-gen' : 
-                            container.model_name === 'text-to-video' || container.model_name === 'video' ? 'ai-video' : 
-                            container.model_name === 'music-ai' ? 'ai-music' : 
+                      src={`/ai-models/${container.model_name === 'neurolov-image' ? 'neuro-image-gen' :
+                        container.model_name === 'text-to-video' || container.model_name === 'video' ? 'ai-video' :
+                          container.model_name === 'music-ai' ? 'ai-music' :
                             'neuro-image-gen'}.png`}
                       alt={container.model_name}
                       fill
