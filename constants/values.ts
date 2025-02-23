@@ -360,7 +360,7 @@ export const gpuData: GPU[] = [
       vram: 24
     },
     price: {
-      usd: 0.90,
+      usd: 0.40,
       nlov: 0.63
     }
   },
@@ -375,7 +375,7 @@ export const gpuData: GPU[] = [
       vram: 24
     },
     price: {
-      usd: 0.80,
+      usd: 0.30,
       nlov: 0.56
     }
   },
@@ -390,7 +390,7 @@ export const gpuData: GPU[] = [
       vram: 24
     },
     price: {
-      usd: 0.70,
+      usd: 0.25,
       nlov: 0.49
     }
   },
@@ -420,7 +420,7 @@ export const gpuData: GPU[] = [
       vram: 24
     },
     price: {
-      usd: 0.80,
+      usd: 0.70,
       nlov: 0.56
     }
   },
@@ -435,7 +435,7 @@ export const gpuData: GPU[] = [
       vram: 16
     },
     price: {
-      usd: 0.70,
+      usd: 0.50,
       nlov: 0.49
     }
   },
@@ -450,7 +450,7 @@ export const gpuData: GPU[] = [
       vram: 80
     },
     price: {
-      usd: 3.50,
+      usd: 3.5,
       nlov: 2.45
     }
   },
@@ -465,7 +465,7 @@ export const gpuData: GPU[] = [
       vram: 48
     },
     price: {
-      usd: 1.20,
+      usd: 0.70,
       nlov: 0.84
     }
   },
@@ -480,7 +480,7 @@ export const gpuData: GPU[] = [
       vram: 80
     },
     price: {
-      usd: 2.50,
+      usd: 1.5,
       nlov: 1.75
     }
   }

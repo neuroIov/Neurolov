@@ -27,11 +27,11 @@ const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Compute', href: '/gpu-marketplace', icon: Cpu, isNew: true },
   { name: 'AI Models', href: '/ai-models', icon: Brain, isNew: true },
-  { name: 'AI Agents', href: '/ai-agents', icon: Sparkles, isLocked: true },
-  { name: 'Earnings', href: '/earnings', icon: Coins, isLocked: true },
-  { name: 'Connect to Earn', href: '/connect-to-earn', icon: Network, isLocked: true },
-  { name: 'Wallet', href: '/wallet', icon: Wallet, isLocked: true },
-  { name: 'Community', href: '/community', icon: Users, isLocked: true },
+  { name: 'AI Agents', href: '#', icon: Sparkles, isLocked: true, disabled: true },
+  { name: 'Earnings', href: '#', icon: Coins, isLocked: true, disabled: true },
+  { name: 'Connect to Earn', href: '#', icon: Network, isLocked: true, disabled: true },
+  { name: 'Wallet', href: '#', icon: Wallet, isLocked: true, disabled: true },
+  { name: 'Community', href: '#', icon: Users, isLocked: true, disabled: true },
   { name: 'Settings', href: '/settings', icon: Settings },
   { name: 'More info', href: '/more-info', icon: Info },
 ];
@@ -189,11 +189,20 @@ function MainLayout({
                       <Link
                         key={item.name}
                         href={item.href}
-                        onClick={() => setIsMenuOpen(false)}
-                        className={`group flex items-center justify-between px-4 py-3.5 text-base font-medium rounded-lg transition-colors ${isActive
-                          ? 'bg-white/10 text-white'
-                          : 'text-gray-400 hover:text-white hover:bg-white/5'
-                          }`}
+                        onClick={(e) => {
+                          if (item.disabled) {
+                            e.preventDefault();
+                            return;
+                          }
+                          setIsSidebarCollapsed(true);
+                        }}
+                        className={`group flex items-center justify-between px-4 py-3.5 text-base font-medium rounded-lg transition-colors ${
+                          isActive
+                            ? 'bg-white/10 text-white'
+                            : item.disabled
+                              ? 'text-gray-400 cursor-not-allowed'
+                              : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        }`}
                       >
                         <div className="flex items-center space-x-3">
                           <Icon className="h-5 w-5" />

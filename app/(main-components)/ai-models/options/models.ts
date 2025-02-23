@@ -120,24 +120,5 @@ export const models: AIModel[] = [
       minVram: 32
     }
   },
-  {
-    id: 'pytorch-server',
-    name: 'PyTorch Server',
-    description: 'Deploy PyTorch models with high performance and scalability',
-   
-    tags: ['PyTorch', 'Server', 'AI'],
-    iconBg: 'bg-orange-500/10',
-    features: [
-      'Model serving',
-      'Dynamic batching',
-      'GPU optimization',
-      'Model versioning'
-    ],
-    defaultConfig: {
-      containerImage: 'huggingface/transformers-pytorch-gpu:latest',
-      exposedPorts: [8888],
-      minDisk: 15,
-      minVram: 16
-    }
-  }
+  
 ];

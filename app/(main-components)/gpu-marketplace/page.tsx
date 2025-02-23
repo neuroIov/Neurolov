@@ -124,6 +124,11 @@ export default function Home() {
     return false;
   };
 
+  const handleJoinWaitlist = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    window.open('https://docs.google.com/forms/d/1RxEzc8q1qbq2TdFRssjewASl_-U7WVBSr3AEvwL81LQ/edit', '_blank');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-black to-gray-900 text-white">
       <nav className="border-b border-gray-800 bg-black/50 backdrop-blur-sm sticky top-0 z-20">
@@ -266,7 +271,18 @@ export default function Home() {
                 <ComingSoonOverlay 
                   type="hover" 
                   title="GPU Coming Soon"
-                  description="This GPU will be available for deployment soon!"
+                  description={gpu.id.toLowerCase().startsWith('rtx') 
+                    ? "Join our waitlist to get early access to this high-performance RTX GPU!"
+                    : "This GPU will be available for deployment soon!"
+                  }
+                  customButton={gpu.id.toLowerCase().startsWith('rtx') ? (
+                    <Button 
+                      className="mt-4 bg-blue-600 hover:bg-blue-700 text-white"
+                      onClick={handleJoinWaitlist}
+                    >
+                      Join Waitlist
+                    </Button>
+                  ) : undefined}
                 />
               </div>
             )}
