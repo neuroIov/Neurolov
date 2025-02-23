@@ -138,23 +138,119 @@
 
 .image-card {
   position: relative;
+  background: #1a1a1a;
   border-radius: 12px;
   overflow: hidden;
-  background: #1a1a1a;
-  transition: all 0.3s ease;
-  width: 100%;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Mobile-first approach - full width images */
 .image-card img {
   width: 100%;
   height: auto;
+  max-height: 512px;
+  object-fit: contain;
   display: block;
-  border-radius: 12px;
 }
 
-/* Desktop optimization - smaller images */
-@media (min-width: 1024px) {
+.image-card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), transparent);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  z-index: 10;
+}
+
+.image-card-features {
+  display: flex;
+  gap: 0.5rem;
+  color: white;
+  font-size: 0.875rem;
+}
+
+.feature-tag {
+  background: rgba(0, 0, 0, 0.6);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  backdrop-filter: blur(4px);
+}
+
+.image-card-actions {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  z-index: 10;
+}
+
+.action-button {
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: #000 !important;
+  border-radius: 9999px !important;
+  padding: 0.5rem !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 36px !important;
+  height: 36px !important;
+}
+
+.action-button:hover {
+  background: white !important;
+  transform: scale(1.05);
+}
+
+.action-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Share dialog styles */
+.share-dialog {
+  position: absolute;
+  bottom: 4rem;
+  right: 1rem;
+  background: rgba(0, 0, 0, 0.9);
+  border-radius: 8px;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  backdrop-filter: blur(8px);
+  z-index: 20;
+}
+
+.share-button {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  padding: 0.5rem 1rem !important;
+  color: white !important;
+  transition: background-color 0.2s !important;
+  border-radius: 6px !important;
+}
+
+.share-button:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Mobile-first approach - full width images */
+@media (max-width: 1024px) {
   .generated-images {
     padding: 2rem;
   }
@@ -168,7 +264,7 @@
   .image-card img {
     width: 100%;
     height: auto;
-    max-height: 512px;
+    max-height: 256px;
     object-fit: contain;
   }
 
@@ -200,76 +296,6 @@
   .chat-message.response .message-content {
     margin-left: 2rem;
   }
-}
-
-.image-card .image-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
-  padding: 20px;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.image-card:hover .image-overlay {
-  opacity: 1;
-}
-
-.download-button {
-  position: absolute;
-  left: 16px;
-  bottom: 16px;
-  background: white;
-  border: none;
-  border-radius: 8px;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.download-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.download-button .icon {
-  width: 20px;
-  height: 20px;
-  color: #1a1a1a;
-}
-
-.image-metadata {
-  position: absolute;
-  right: 20px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: auto;
-}
-
-.metadata-tag {
-  font-size: 12px;
-  padding: 4px 8px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  backdrop-filter: blur(4px);
-}
-
-.metadata-tag.enhance {
-  background: rgba(59, 130, 246, 0.3);
-  border-color: rgba(59, 130, 246, 0.4);
-  color: #60A5FA;
 }
 
 /* Image Modal */

@@ -23,7 +23,7 @@ export const models: AIModel[] = [
   {
     id: 'uncensored-chat',
     name: 'Uncensored Chat',
-    description: 'Engage in unrestricted conversations without any censorship or limitations. Ask anythingand get unfiltered responses.',
+    description: 'Engage in unrestricted conversations without any censorship or limitations,dive in with your thoughts. Ask anything and get unfiltered responses.',
     features: [
       'Unrestricted conversations',
       'No topic limitations',

@@ -126,7 +126,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black to-gray-900 text-white">
-      <nav className="border-b border-gray-800 bg-black/50 backdrop-blur-sm sticky top-0 z-50">
+      <nav className="border-b border-gray-800 bg-black/50 backdrop-blur-sm sticky top-0 z-20">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-8">

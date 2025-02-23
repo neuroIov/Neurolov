@@ -122,13 +122,13 @@ function MainLayout({
   return (
     <div className="min-h-screen bg-black grid-background">
       {/* Header */}
-      <header className="fixed top-0 z-50 w-full border-b border-gray-800 glass">
+      <header className="fixed top-0 z-[100] w-full border-b border-gray-800 bg-black/95">
         <div className="px-4 md:px-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-4 md:gap-12">
             {/* Hamburger Menu */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2 hover:bg-white/5 rounded-lg glass glow"
+              className="p-2 hover:bg-white/5 rounded-lg"
             >
               <Menu className="h-6 w-6 text-gray-400" />
             </button>
@@ -138,24 +138,14 @@ function MainLayout({
               <img src="/neurolov-logo.svg" alt="Neurolov" className="h-8" />
             </Link>
 
-            {/* Search - Hidden on mobile */}
-            <div className="hidden md:block relative flex-1 max-w-3xl">
-              <input
-                type="text"
-                placeholder="Search for something"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-12 px-5 py-2 bg-white/5 rounded-lg text-gray-300 focus:outline-none focus:ring-1 focus:ring-[#40A6FF] glass text-lg"
-              />
-              <Search className="absolute right-4 top-3.5 h-5 w-5 text-gray-400" />
-            </div>
+            
           </div>
 
           <div className="flex items-center space-x-4">
             {/* Profile Dropdown - Only show when logged in */}
             {user && (
               <DropdownMenu>
-                <DropdownMenuTrigger className="p-2 hover:bg-white/5 rounded-lg glass glow">
+                <DropdownMenuTrigger className="p-2 hover:bg-white/5 rounded-lg">
                   <User className="h-6 w-6 text-gray-400" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48 bg-black/90 backdrop-blur-xl border border-white/10">

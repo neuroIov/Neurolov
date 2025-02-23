@@ -2,6 +2,8 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { type SupabaseClient } from '@supabase/supabase-js';
 
 let supabase: SupabaseClient | null = null;
+let lastAuthAttempt = 0;
+const MIN_AUTH_INTERVAL = 2000; // Minimum 2 seconds between auth attempts
 
 export const getSupabaseClient = () => {
   if (!supabase) {
@@ -19,81 +21,127 @@ export const getSupabaseClient = () => {
   return supabase;
 };
 
+// Rate limiting check
+const checkRateLimit = () => {
+  const now = Date.now();
+  if (now - lastAuthAttempt < MIN_AUTH_INTERVAL) {
+    throw new Error('Please wait before trying to sign in again');
+  }
+  lastAuthAttempt = now;
+};
+
+// Browser detection helpers
+const isInstagramBrowser = () => /Instagram/.test(window.navigator.userAgent);
+const isIOSDevice = () => /iPhone|iPad|iPod/.test(window.navigator.userAgent);
+const isAndroidDevice = () => /Android/.test(window.navigator.userAgent);
+
 // Simple auth helpers
 export const signInWithProvider = async (provider: 'google' | 'github') => {
   try {
-    // Check if we're in Instagram's in-app browser
-    const isInstagramBrowser = /Instagram/.test(window.navigator.userAgent);
-    
-    if (isInstagramBrowser) {
-      // Get the current URL
+    // Check rate limit
+    checkRateLimit();
+
+    // Only redirect to external browser if we're in Instagram's in-app browser
+    if (isInstagramBrowser()) {
       const currentUrl = window.location.href;
       
-      // Create a deep link to open in external browser
-      // For iOS
-      if (/iPhone|iPad|iPod/.test(window.navigator.userAgent)) {
+      if (isIOSDevice()) {
+        // For iOS Instagram, try Chrome first then Safari
         window.location.href = `googlechromes://${currentUrl}`;
-        // Fallback for Safari if Chrome isn't installed
         setTimeout(() => {
           window.location.href = `safari-https://${currentUrl.replace('https://', '')}`;
         }, 2000);
-      } 
-      // For Android
-      else {
+      } else if (isAndroidDevice()) {
+        // For Android Instagram
         window.location.href = `intent://${currentUrl.replace('https://', '')}#Intent;scheme=https;package=com.android.chrome;end`;
       }
       
       return { error: null };
     }
 
+    // For all other browsers (including iOS Safari), proceed with normal OAuth
     const client = getSupabaseClient();
     const { data, error } = await client.auth.signInWithOAuth({
       provider,
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
-        skipBrowserRedirect: false,
-        preferredBrowser: 'external', // Force external browser for all auth attempts
         queryParams: {
-          prompt: 'select_account',
-          access_type: 'offline'
+          // Add a timestamp to prevent caching issues on iOS
+          _t: Date.now().toString()
         }
       },
     });
 
-    return { data, error };
-  } catch (error) {
-    console.error('Auth error:', error);
-    return { error };
+    if (error) {
+      // Handle rate limit errors specifically
+      if (error.status === 429) {
+        throw new Error('Too many sign-in attempts. Please wait a few minutes and try again.');
+      }
+      throw error;
+    }
+
+    return { data, error: null };
+  } catch (error: any) {
+    console.error('Sign in error:', error);
+    return { 
+      data: null, 
+      error: {
+        message: error.message || 'An error occurred during sign in',
+        status: error.status || 500
+      }
+    };
   }
 };
 
 // Email sign in helper
 export const signInWithEmail = async (email: string) => {
-  const client = getSupabaseClient();
   try {
-    // Use signInWithOtp with shouldCreateUser=true
-    // This will handle both new and existing users
+    // Check rate limit
+    checkRateLimit();
+
+    const client = getSupabaseClient();
     const { data, error } = await client.auth.signInWithOtp({
       email,
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback`,
-        shouldCreateUser: true, // This will create the user if they don't exist
-      }
+      },
     });
-    
+
     if (error) {
-      console.error('Sign in error:', error);
+      // Handle rate limit errors specifically
+      if (error.status === 429) {
+        throw new Error('Too many sign-in attempts. Please wait a few minutes and try again.');
+      }
       throw error;
     }
-    
+
     return { data, error: null };
-  } catch (error) {
-    console.error('Sign in error:', error);
-    return { data: null, error };
+  } catch (error: any) {
+    console.error('Email sign in error:', error);
+    return { 
+      data: null, 
+      error: {
+        message: error.message || 'An error occurred during email sign in',
+        status: error.status || 500
+      }
+    };
   }
 };
 
+// Sign out helper
 export const signOut = async () => {
-  const client = getSupabaseClient();
-  return client.auth.signOut();
+  try {
+    const client = getSupabaseClient();
+    const { error } = await client.auth.signOut();
+    if (error) throw error;
+    return { error: null };
+  } catch (error: any) {
+    console.error('Sign out error:', error);
+    return { 
+      error: {
+        message: error.message || 'An error occurred during sign out',
+        status: error.status || 500
+      }
+    };
+  }
 };

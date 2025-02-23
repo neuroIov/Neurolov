@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useUser } from '@/app/auth/useUser';
 import { signInWithProvider, getSupabaseClient } from '@/app/auth/supabase';
 import { toast } from 'sonner';
@@ -14,15 +14,31 @@ export default function RootPage() {
   const { user, loading } = useUser();
   const [isLoading, setIsLoading] = useState(false);
   const [subscribed, setSubscribed] = useState(true);
+  const loginAttemptRef = useRef(false);
+  const loginTimeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     if (!loading && user) {
       router.replace('/dashboard');
     }
+    
+    // Cleanup any pending timeouts
+    return () => {
+      if (loginTimeoutRef.current) {
+        clearTimeout(loginTimeoutRef.current);
+      }
+    };
   }, [user, loading, router]);
 
-  const handleGoogleAuth = async () => {
+  const handleGoogleAuth = useCallback(async () => {
+    // Prevent multiple login attempts
+    if (loginAttemptRef.current || isLoading) {
+      toast.error('Login already in progress');
+      return;
+    }
+
     try {
+      loginAttemptRef.current = true;
       setIsLoading(true);
       
       // Get the Supabase client
@@ -37,48 +53,58 @@ export default function RootPage() {
         return;
       }
 
-      // Get the session after successful auth
-      const { data: { session }, error: sessionError } = await client.auth.getSession();
-      
-      if (sessionError) {
-        console.error('Session error:', sessionError);
-        return;
-      }
-
-      // If user subscribed to newsletter and we have their email, subscribe them
-      if (subscribed && session?.user?.email) {
+      // Add a small delay to prevent rapid subsequent attempts
+      loginTimeoutRef.current = setTimeout(async () => {
         try {
-          const response = await fetch('/api/newsletter', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email: session.user.email }),
-          });
+          // Get the session after successful auth
+          const { data: { session }, error: sessionError } = await client.auth.getSession();
           
-          const data = await response.json();
-          
-          if (!response.ok) {
-            console.error('Newsletter subscription failed:', data.error);
-            toast.error(data.error || 'Failed to subscribe to newsletter');
-          } else {
-            toast.success(data.message || 'Successfully subscribed to newsletter!');
+          if (sessionError) {
+            console.error('Session error:', sessionError);
+            return;
           }
-        } catch (error) {
-          console.error('Newsletter error:', error);
-          toast.error('Failed to subscribe to newsletter');
+
+          // If user subscribed to newsletter and we have their email, subscribe them
+          if (subscribed && session?.user?.email) {
+            try {
+              const response = await fetch('/api/newsletter', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email: session.user.email }),
+              });
+              
+              const data = await response.json();
+              
+              if (!response.ok) {
+                console.error('Newsletter subscription failed:', data.error);
+                toast.error(data.error || 'Failed to subscribe to newsletter');
+              } else {
+                toast.success(data.message || 'Successfully subscribed to newsletter!');
+              }
+            } catch (error) {
+              console.error('Newsletter error:', error);
+              toast.error('Failed to subscribe to newsletter');
+            }
+          }
+          
+          // Redirect to dashboard
+          router.replace('/dashboard');
+        } catch (error: any) {
+          console.error('Session error:', error);
+          toast.error(error.message || 'Error getting session');
         }
-      }
+      }, 1000); // 1 second delay
       
-      // Redirect to dashboard
-      router.replace('/dashboard');
     } catch (error: any) {
       console.error('Auth error:', error);
       toast.error(error.message || 'Error during authentication');
     } finally {
+      loginAttemptRef.current = false;
       setIsLoading(false);
     }
-  };
+  }, [router, subscribed]);
 
   if (loading) return null;
 

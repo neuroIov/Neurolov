@@ -62,6 +62,11 @@ export async function POST(request: NextRequest) {
       const data = await modelLabsResponse.json();
       console.log('ModelsLab Response:', data);
 
+      // Handle error response from ModelsLab
+      if (data.status === 'error') {
+        return errorResponse(data.message || 'ModelsLab API error', 500);
+      }
+
       if (data.status === 'success' && data.message) {
         // Return both the message and meta information
         return NextResponse.json({
