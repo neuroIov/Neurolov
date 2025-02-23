@@ -36,6 +36,7 @@ export default function NeuroImageGenerator() {
   const [showSizeDialog, setShowSizeDialog] = useState(false);
   const [showStyleDialog, setShowStyleDialog] = useState(false);
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
   const [showProgressDialog, setShowProgressDialog] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [userName, setUserName] = useState('');
@@ -192,109 +193,52 @@ export default function NeuroImageGenerator() {
     setSelectedImage(null);
   };
 
-  const handleShare = async (imageUrl: string) => {
+  // Functions for per-image sharing
+  const shareImageOnTwitter = (imageUrl: string) => {
+    const url = `https://twitter.com/intent/tweet?url=${encodeURIComponent(imageUrl)}&text=${encodeURIComponent("Check out this cool image!")}`;
+    window.open(url, '_blank');
+    setActiveShareIndex(null);
+  };
+
+  const shareImageOnInstagram = (imageUrl: string) => {
+    window.open('https://www.instagram.com', '_blank');
+    setActiveShareIndex(null);
+  };
+
+  const shareImageOnTelegram = (imageUrl: string) => {
+    const url = `https://t.me/share/url?url=${encodeURIComponent(imageUrl)}&text=${encodeURIComponent("Check out this cool image!")}`;
+    window.open(url, '_blank');
+    setActiveShareIndex(null);
+  };
+
+  const copyImageToClipboard = async (imageUrl: string) => {
     try {
-      // Download the image first
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      const fileName = `neurolov-image-${Date.now()}.png`;
-      const file = new File([blob], fileName, { type: 'image/png' });
-
-      // Try native sharing first
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: 'Check out this image!',
-          text: 'Generated with Neurolov'
-        });
-      } else {
-        // Fallback to custom share dialog
-        const shareWindow = document.createElement('div');
-        shareWindow.style.position = 'fixed';
-        shareWindow.style.top = '50%';
-        shareWindow.style.left = '50%';
-        shareWindow.style.transform = 'translate(-50%, -50%)';
-        shareWindow.style.backgroundColor = 'white';
-        shareWindow.style.padding = '20px';
-        shareWindow.style.borderRadius = '10px';
-        shareWindow.style.boxShadow = '0 0 10px rgba(0,0,0,0.2)';
-        shareWindow.style.zIndex = '1000';
-        shareWindow.style.display = 'flex';
-        shareWindow.style.flexDirection = 'column';
-        shareWindow.style.gap = '10px';
-        shareWindow.style.minWidth = '200px';
-
-        const platforms = [
-          { name: 'Twitter', url: `https://twitter.com/intent/tweet?text=${encodeURIComponent('Check out this image generated with Neurolov!')}` },
-          { name: 'Telegram', url: `https://t.me/share/url?url=${encodeURIComponent(imageUrl)}&text=${encodeURIComponent('Check out this image generated with Neurolov!')}` },
-          { name: 'Instagram', url: 'https://www.instagram.com' }
-        ];
-
-        platforms.forEach(platform => {
-          const button = document.createElement('button');
-          button.textContent = `Share on ${platform.name}`;
-          button.style.padding = '10px';
-          button.style.border = 'none';
-          button.style.borderRadius = '5px';
-          button.style.backgroundColor = '#0070f3';
-          button.style.color = 'white';
-          button.style.cursor = 'pointer';
-          button.style.width = '100%';
-          button.style.fontSize = '14px';
-          button.style.display = 'flex';
-          button.style.alignItems = 'center';
-          button.style.justifyContent = 'center';
-          button.style.gap = '8px';
-
-          button.onmouseover = () => {
-            button.style.backgroundColor = '#0051cc';
-          };
-          button.onmouseout = () => {
-            button.style.backgroundColor = '#0070f3';
-          };
-
-          button.onclick = async () => {
-            if (platform.name === 'Instagram') {
-              // For Instagram, we need to download the image first
-              const a = document.createElement('a');
-              a.href = URL.createObjectURL(blob);
-              a.download = fileName;
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-              URL.revokeObjectURL(a.href);
-              setTimeout(() => {
-                window.open(platform.url, '_blank');
-              }, 100);
-            } else {
-              window.open(platform.url, '_blank');
-            }
-            document.body.removeChild(shareWindow);
-          };
-
-          shareWindow.appendChild(button);
-        });
-
-        // Add close button
-        const closeButton = document.createElement('button');
-        closeButton.textContent = 'Close';
-        closeButton.style.padding = '10px';
-        closeButton.style.border = 'none';
-        closeButton.style.borderRadius = '5px';
-        closeButton.style.backgroundColor = '#ff4444';
-        closeButton.style.color = 'white';
-        closeButton.style.cursor = 'pointer';
-        closeButton.style.width = '100%';
-        closeButton.style.marginTop = '10px';
-        closeButton.onclick = () => document.body.removeChild(shareWindow);
-
-        shareWindow.appendChild(closeButton);
-        document.body.appendChild(shareWindow);
-      }
-    } catch (error) {
-      console.error('Error sharing:', error);
-      alert('Failed to share the image. Please try again.');
+      await navigator.clipboard.writeText(imageUrl);
+      alert('Image URL copied to clipboard!');
+    } catch (err) {
+      console.error('Failed to copy!', err);
     }
+    setActiveShareIndex(null);
+  };
+
+  // Global share functions (for sharing current page)
+  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+
+  const shareOnTwitter = () => {
+    const url = `https://twitter.com/intent/tweet?url=${encodeURIComponent(currentUrl)}&text=${encodeURIComponent("Check out this cool image!")}`;
+    window.open(url, '_blank');
+    setShowShareDialog(false);
+  };
+
+  const shareOnInstagram = () => {
+    window.open('https://www.instagram.com', '_blank');
+    setShowShareDialog(false);
+  };
+
+  const shareOnTelegram = () => {
+    const url = `https://t.me/share/url?url=${encodeURIComponent(currentUrl)}&text=${encodeURIComponent("Check out this cool image!")}`;
+    window.open(url, '_blank');
+    setShowShareDialog(false);
   };
 
   const sizeOptions = [
@@ -339,104 +283,83 @@ export default function NeuroImageGenerator() {
                     <p>{message.content}</p>
                   </div>
                 ) : (
-                  <div className="image-container">
-                    {message.image && (
-                      <div className="image-card">
-                        <img
-                          src={message.image}
-                          alt={message.content}
-                          onClick={() => handleImageClick(message.image!)}
-                        />
-                        <div className="image-actions" style={{
+                  <div className="image-card" style={{ position: 'relative' }}>
+                    <img src={message.image} alt={message.content} onClick={() => handleImageClick(message.image!)} />
+                    
+                    {/* Existing image metadata overlay */}
+                    <div className="image-overlay">
+                      <div className="image-metadata">
+                        {message.metadata?.size && <span className="metadata-tag">{message.metadata.size}</span>}
+                        {message.metadata?.style && <span className="metadata-tag">{message.metadata.style}</span>}
+                        {message.metadata?.enhance && <span className="metadata-tag enhance">Enhanced</span>}
+                      </div>
+                    </div>
+                    
+                    {/* Share icon at top right corner (black icon, white bg) */}
+                    <button
+                      className="share-icon"
+                      style={{
+                        position: 'absolute',
+                        top: '8px',
+                        right: '8px',
+                        background: '#fff',
+                        border: 'none',
+                        borderRadius: '50%',
+                        padding: '4px',
+                        cursor: 'pointer',
+                        zIndex: 2,
+                        boxShadow: '0 0 4px rgba(0,0,0,0.2)'
+                      }}
+                      onClick={() =>
+                        setActiveShareIndex(activeShareIndex === index ? null : index)
+                      }
+                      aria-label="Share image"
+                    >
+                      <Share2 className="icon" style={{ color: 'black' }} />
+                    </button>
+                    
+                    {/* Share overlay options for this image */}
+                    {activeShareIndex === index && (
+                      <div
+                        className="share-overlay"
+                        style={{
                           position: 'absolute',
-                          bottom: '10px',
-                          right: '10px',
+                          top: '40px',
+                          right: '8px',
+                          background: '#fff',
+                          border: '1px solid #ddd',
+                          borderRadius: '4px',
+                          padding: '4px',
+                          zIndex: 2,
                           display: 'flex',
-                          gap: '8px',
-                          zIndex: 10
-                        }}>
-                          <Button
-                            variant="secondary"
-                            size="icon"
-                            onClick={() => handleShare(message.image!)}
-                            style={{
-                              background: 'white',
-                              borderRadius: '50%',
-                              padding: '6px',
-                              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                            }}
-                          >
-                            <Share2 className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="secondary"
-                            size="icon"
-                            onClick={() => handleDownload(message.image!)}
-                            style={{
-                              background: 'white',
-                              borderRadius: '50%',
-                              padding: '6px',
-                              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                            }}
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        {/* Generation features metadata */}
-                        <div className="image-metadata" style={{
-                          position: 'absolute',
-                          top: '10px',
-                          left: '10px',
-                          display: 'flex',
-                          gap: '8px',
-                          flexWrap: 'wrap'
-                        }}>
-                          {message.metadata?.size && (
-                            <span style={{
-                              background: 'rgba(255,255,255,0.9)',
-                              padding: '4px 8px',
-                              borderRadius: '4px',
-                              fontSize: '12px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px'
-                            }}>
-                              <Image className="h-3 w-3" />
-                              {message.metadata.size}
-                            </span>
-                          )}
-                          {message.metadata?.style && (
-                            <span style={{
-                              background: 'rgba(255,255,255,0.9)',
-                              padding: '4px 8px',
-                              borderRadius: '4px',
-                              fontSize: '12px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px'
-                            }}>
-                              <Palette className="h-3 w-3" />
-                              {message.metadata.style}
-                            </span>
-                          )}
-                          {message.metadata?.enhance && (
-                            <span style={{
-                              background: 'rgba(var(--primary-rgb), 0.9)',
-                              color: 'white',
-                              padding: '4px 8px',
-                              borderRadius: '4px',
-                              fontSize: '12px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px'
-                            }}>
-                              <Wand2 className="h-3 w-3" />
-                              Enhanced
-                            </span>
-                          )}
-                        </div>
+                          flexDirection: 'column',
+                          gap: '4px',
+                          color: 'black'
+                        }}
+                      >
+                        <Button variant="ghost" className="option" onClick={() => shareImageOnTwitter(message.image!)}>
+                          Twitter
+                        </Button>
+                        <Button variant="ghost" className="option" onClick={() => shareImageOnInstagram(message.image!)}>
+                          Instagram
+                        </Button>
+                        <Button variant="ghost" className="option" onClick={() => shareImageOnTelegram(message.image!)}>
+                          Telegram
+                        </Button>
+                        <Button variant="ghost" className="option" onClick={() => copyImageToClipboard(message.image!)}>
+                          <Copy className="icon" style={{ color: 'black' }} /> Copy URL
+                        </Button>
                       </div>
                     )}
+
+                    {/* Existing download button */}
+                    <Button
+                      className="download-button"
+                      onClick={() => handleDownload(message.image!)}
+                      aria-label="Download image"
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
                   </div>
                 )}
               </div>
@@ -474,9 +397,15 @@ export default function NeuroImageGenerator() {
           <div className="feature-buttons">
             <button 
               className="feature-button"
-              onClick={handleClearHistory}
+              onClick={() => setShowShareDialog(true)}
             >
+              <Share2 className="icon" />
+              Share
+            </button>
+
+            <button className="clear-history" onClick={handleClearHistory}>
               <Trash2 className="icon" />
+              Clear History
             </button>
             
             <button 
@@ -484,6 +413,7 @@ export default function NeuroImageGenerator() {
               onClick={() => setShowSettingsDialog(true)}
             >
               <Settings className="icon" />
+              Settings
             </button>
 
             <button
@@ -504,6 +434,26 @@ export default function NeuroImageGenerator() {
               )}
             </button>
           </div>
+
+          {/* Global Share Dialog with white background and black text */}
+          <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+            <DialogContent className="dialog-content" style={{ backgroundColor: '#fff', color: 'black' }}>
+              <DialogHeader>
+                <DialogTitle>Share Options</DialogTitle>
+              </DialogHeader>
+              <div className="dialog-options share-options">
+                <Button variant="ghost" className="option" onClick={shareOnTwitter}>
+                  Twitter
+                </Button>
+                <Button variant="ghost" className="option" onClick={shareOnInstagram}>
+                  Instagram
+                </Button>
+                <Button variant="ghost" className="option" onClick={shareOnTelegram}>
+                  Telegram
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
 
           {/* Settings Dialog */}
           <Dialog open={showSettingsDialog} onOpenChange={setShowSettingsDialog}>

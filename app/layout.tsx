@@ -64,10 +64,10 @@ function RootLayout({
       </head>
       <body className="min-h-screen bg-black font-sans antialiased">
         <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            enableSystem
-            disableTransitionOnChange
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
         >
           <Providers>
             <MainLayout isSidebarCollapsed={isSidebarCollapsed} setIsSidebarCollapsed={setIsSidebarCollapsed}>
@@ -81,11 +81,11 @@ function RootLayout({
   );
 }
 
-function MainLayout({ 
+function MainLayout({
   children,
   isSidebarCollapsed,
   setIsSidebarCollapsed
-}: { 
+}: {
   children: React.ReactNode;
   isSidebarCollapsed: boolean;
   setIsSidebarCollapsed: (collapsed: boolean) => void;
@@ -109,8 +109,8 @@ function MainLayout({
   if (isSignInPage) {
     return <div className="min-h-screen bg-gradient-to-b from-black to-gray-900">{children}</div>;
   }
-  
-  // Show loading state
+
+  //   // Show loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-black to-gray-900 flex items-center justify-center">
@@ -149,13 +149,13 @@ function MainLayout({
                   <User className="h-6 w-6 text-gray-400" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48 bg-black/90 backdrop-blur-xl border border-white/10">
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     className="text-gray-300 hover:text-white focus:text-white cursor-pointer"
                     onClick={() => router.push('/auth/profile')}
                   >
                     Profile
                   </DropdownMenuItem>
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     className="text-gray-300 hover:text-white focus:text-white cursor-pointer"
                     onClick={handleLogout}
                   >
