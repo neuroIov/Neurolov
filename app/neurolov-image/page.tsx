@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Download, Image, Palette, LayoutTemplate, Wand2, Loader2, Sparkles, Trash2, X, ArrowDown, Settings } from 'lucide-react';
+import { ArrowLeft, Download, Image, Palette, Wand2, Loader2, Sparkles, Trash2, X, Settings, Share2, Copy } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import {
   Dialog,
@@ -35,19 +35,36 @@ export default function NeuroImageGenerator() {
   const [enhance, setEnhance] = useState(true);
   const [showSizeDialog, setShowSizeDialog] = useState(false);
   const [showStyleDialog, setShowStyleDialog] = useState(false);
+  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [showProgressDialog, setShowProgressDialog] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState(0);
   const [userName, setUserName] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
+  // For per-image share overlay (stores index of image whose share overlay is open)
+  const [activeShareIndex, setActiveShareIndex] = useState<number | null>(null);
 
-  useEffect(() => {
+  // Filter out logs containing API endpoint details in production
+  React.useEffect(() => {
+    if (process.env.NODE_ENV !== 'development') {
+      const originalLog = console.log;
+      console.log = (...args: any[]) => {
+        if (args.some(arg => typeof arg === 'string' && arg.includes('/api/Neurolov-image-generator'))) {
+          return;
+        }
+        originalLog(...args);
+      };
+    }
+  }, []);
+
+  React.useEffect(() => {
     if (user) {
-      // Use full_name from user metadata if available, otherwise use email
       const name = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Guest';
       setUserName(name);
     }
   }, [user]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (user) {
       const savedHistory = localStorage.getItem(`image_gen_history_${user.id}`);
       if (savedHistory) {
@@ -56,7 +73,7 @@ export default function NeuroImageGenerator() {
     }
   }, [user]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (user && chatHistory.length > 0) {
       localStorage.setItem(`image_gen_history_${user.id}`, JSON.stringify(chatHistory));
     }
@@ -70,12 +87,22 @@ export default function NeuroImageGenerator() {
     if (!prompt.trim() || isGenerating) return;
     setIsGenerating(true);
 
-    // Create enhanced prompt with metadata
+    // Show progress dialog and reset progress.
+    setShowProgressDialog(true);
+    setGenerationProgress(0);
+
+    // Start a simulated progress update interval with smaller increments for smoothness.
+    const intervalId = setInterval(() => {
+      setGenerationProgress(prev => (prev < 90 ? prev + 3 : prev));
+    }, 100);
+
+    // Create enhanced prompt with metadata for API call only.
     const enhancedPrompt = `${prompt}\n\nSettings:\n- Size: ${selectedSize}\n- Style: ${selectedStyle}\n${enhance ? '- Enhanced: Yes' : ''}`;
 
+    // Store only the raw prompt in the chat history.
     const promptMessage: ChatMessage = {
       type: 'prompt',
-      content: enhancedPrompt
+      content: prompt
     };
     setChatHistory(prev => [...prev, promptMessage]);
 
@@ -103,7 +130,7 @@ export default function NeuroImageGenerator() {
       if (data.images?.[0]) {
         const responseMessage: ChatMessage = {
           type: 'response',
-          content: enhancedPrompt,
+          content: prompt,
           image: data.images[0],
           metadata: {
             size: selectedSize,
@@ -113,23 +140,27 @@ export default function NeuroImageGenerator() {
         };
         setChatHistory(prev => [...prev, responseMessage]);
       }
+      setGenerationProgress(100);
     } catch (error) {
       console.error('Generation error:', error);
-      
-      // Add error message to chat history
       const errorMessage: ChatMessage = {
         type: 'response',
         content: 'Failed to generate image. The system will automatically try alternative services.',
       };
       setChatHistory(prev => [...prev, errorMessage]);
+      setGenerationProgress(100);
     } finally {
+      clearInterval(intervalId);
       setIsGenerating(false);
       setPrompt('');
+      setTimeout(() => {
+        setShowProgressDialog(false);
+        setGenerationProgress(0);
+      }, 500);
     }
   };
 
   const handleDownload = (image: string) => {
-    // Convert base64 to blob
     fetch(image)
       .then(res => res.blob())
       .then(blob => {
@@ -137,7 +168,6 @@ export default function NeuroImageGenerator() {
         const a = document.createElement('a');
         a.style.display = 'none';
         a.href = url;
-        // Remove any query parameters or extra path segments from the image URL
         const fileName = `neurolov-image-${Date.now()}.png`;
         a.download = fileName;
         document.body.appendChild(a);
@@ -161,6 +191,54 @@ export default function NeuroImageGenerator() {
 
   const handleCloseModal = () => {
     setSelectedImage(null);
+  };
+
+  // Functions for per-image sharing
+  const shareImageOnTwitter = (imageUrl: string) => {
+    const url = `https://twitter.com/intent/tweet?url=${encodeURIComponent(imageUrl)}&text=${encodeURIComponent("Check out this cool image!")}`;
+    window.open(url, '_blank');
+    setActiveShareIndex(null);
+  };
+
+  const shareImageOnInstagram = (imageUrl: string) => {
+    window.open('https://www.instagram.com', '_blank');
+    setActiveShareIndex(null);
+  };
+
+  const shareImageOnTelegram = (imageUrl: string) => {
+    const url = `https://t.me/share/url?url=${encodeURIComponent(imageUrl)}&text=${encodeURIComponent("Check out this cool image!")}`;
+    window.open(url, '_blank');
+    setActiveShareIndex(null);
+  };
+
+  const copyImageToClipboard = async (imageUrl: string) => {
+    try {
+      await navigator.clipboard.writeText(imageUrl);
+      alert('Image URL copied to clipboard!');
+    } catch (err) {
+      console.error('Failed to copy!', err);
+    }
+    setActiveShareIndex(null);
+  };
+
+  // Global share functions (for sharing current page)
+  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+
+  const shareOnTwitter = () => {
+    const url = `https://twitter.com/intent/tweet?url=${encodeURIComponent(currentUrl)}&text=${encodeURIComponent("Check out this cool image!")}`;
+    window.open(url, '_blank');
+    setShowShareDialog(false);
+  };
+
+  const shareOnInstagram = () => {
+    window.open('https://www.instagram.com', '_blank');
+    setShowShareDialog(false);
+  };
+
+  const shareOnTelegram = () => {
+    const url = `https://t.me/share/url?url=${encodeURIComponent(currentUrl)}&text=${encodeURIComponent("Check out this cool image!")}`;
+    window.open(url, '_blank');
+    setShowShareDialog(false);
   };
 
   const sizeOptions = [
@@ -190,7 +268,9 @@ export default function NeuroImageGenerator() {
         <div className="image-gen" style={{ maxWidth: '1200px' }}>
           <div className="header-row">
             <div className="welcome-header">
-              <h2 className="greeting">Hi there, <span className="name">{userName}</span> what would you like to imagine today?</h2>
+              <h2 className="greeting">
+                Hi there, <span className="name">{userName}</span> what would you like to imagine today?
+              </h2>
             </div>
           </div>
 
@@ -203,8 +283,10 @@ export default function NeuroImageGenerator() {
                     <p>{message.content}</p>
                   </div>
                 ) : (
-                  <div className="image-card">
+                  <div className="image-card" style={{ position: 'relative' }}>
                     <img src={message.image} alt={message.content} onClick={() => handleImageClick(message.image!)} />
+                    
+                    {/* Existing image metadata overlay */}
                     <div className="image-overlay">
                       <div className="image-metadata">
                         {message.metadata?.size && <span className="metadata-tag">{message.metadata.size}</span>}
@@ -212,6 +294,65 @@ export default function NeuroImageGenerator() {
                         {message.metadata?.enhance && <span className="metadata-tag enhance">Enhanced</span>}
                       </div>
                     </div>
+                    
+                    {/* Share icon at top right corner (black icon, white bg) */}
+                    <button
+                      className="share-icon"
+                      style={{
+                        position: 'absolute',
+                        top: '8px',
+                        right: '8px',
+                        background: '#fff',
+                        border: 'none',
+                        borderRadius: '50%',
+                        padding: '4px',
+                        cursor: 'pointer',
+                        zIndex: 2,
+                        boxShadow: '0 0 4px rgba(0,0,0,0.2)'
+                      }}
+                      onClick={() =>
+                        setActiveShareIndex(activeShareIndex === index ? null : index)
+                      }
+                      aria-label="Share image"
+                    >
+                      <Share2 className="icon" style={{ color: 'black' }} />
+                    </button>
+                    
+                    {/* Share overlay options for this image */}
+                    {activeShareIndex === index && (
+                      <div
+                        className="share-overlay"
+                        style={{
+                          position: 'absolute',
+                          top: '40px',
+                          right: '8px',
+                          background: '#fff',
+                          border: '1px solid #ddd',
+                          borderRadius: '4px',
+                          padding: '4px',
+                          zIndex: 2,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '4px',
+                          color: 'black'
+                        }}
+                      >
+                        <Button variant="ghost" className="option" onClick={() => shareImageOnTwitter(message.image!)}>
+                          Twitter
+                        </Button>
+                        <Button variant="ghost" className="option" onClick={() => shareImageOnInstagram(message.image!)}>
+                          Instagram
+                        </Button>
+                        <Button variant="ghost" className="option" onClick={() => shareImageOnTelegram(message.image!)}>
+                          Telegram
+                        </Button>
+                        <Button variant="ghost" className="option" onClick={() => copyImageToClipboard(message.image!)}>
+                          <Copy className="icon" style={{ color: 'black' }} /> Copy URL
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Existing download button */}
                     <Button
                       className="download-button"
                       onClick={() => handleDownload(message.image!)}
@@ -239,7 +380,7 @@ export default function NeuroImageGenerator() {
         </div>
       )}
 
-      {/* Prompt dialog */}
+      {/* Prompt and Settings Dialogs */}
       <div className="prompt-dialog" style={{ left: 0 }}>
         <div className="prompt-input">
           <textarea
@@ -254,7 +395,15 @@ export default function NeuroImageGenerator() {
             }}
           />
           <div className="feature-buttons">
-          <button className="clear-history" onClick={handleClearHistory}>
+            <button 
+              className="feature-button"
+              onClick={() => setShowShareDialog(true)}
+            >
+              <Share2 className="icon" />
+              Share
+            </button>
+
+            <button className="clear-history" onClick={handleClearHistory}>
               <Trash2 className="icon" />
               Clear History
             </button>
@@ -285,6 +434,26 @@ export default function NeuroImageGenerator() {
               )}
             </button>
           </div>
+
+          {/* Global Share Dialog with white background and black text */}
+          <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+            <DialogContent className="dialog-content" style={{ backgroundColor: '#fff', color: 'black' }}>
+              <DialogHeader>
+                <DialogTitle>Share Options</DialogTitle>
+              </DialogHeader>
+              <div className="dialog-options share-options">
+                <Button variant="ghost" className="option" onClick={shareOnTwitter}>
+                  Twitter
+                </Button>
+                <Button variant="ghost" className="option" onClick={shareOnInstagram}>
+                  Instagram
+                </Button>
+                <Button variant="ghost" className="option" onClick={shareOnTelegram}>
+                  Telegram
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
 
           {/* Settings Dialog */}
           <Dialog open={showSettingsDialog} onOpenChange={setShowSettingsDialog}>
@@ -329,7 +498,7 @@ export default function NeuroImageGenerator() {
             </DialogContent>
           </Dialog>
 
-          {/* Other Dialogs */}
+          {/* Image Size Dialog */}
           <Dialog open={showSizeDialog} onOpenChange={setShowSizeDialog}>
             <DialogContent className="dialog-content">
               <DialogHeader>
@@ -353,6 +522,7 @@ export default function NeuroImageGenerator() {
             </DialogContent>
           </Dialog>
 
+          {/* Style Dialog */}
           <Dialog open={showStyleDialog} onOpenChange={setShowStyleDialog}>
             <DialogContent className="dialog-content">
               <DialogHeader>
@@ -377,6 +547,37 @@ export default function NeuroImageGenerator() {
           </Dialog>
         </div>
       </div>
+      {/* Progress Dialog */}
+      <Dialog open={showProgressDialog} onOpenChange={setShowProgressDialog}>
+        <DialogContent className="dialog-content">
+          <DialogHeader>
+            <DialogTitle>Image Generation Progress</DialogTitle>
+          </DialogHeader>
+          <div className="progress-content">
+            <p>Generating image... {generationProgress}% completed</p>
+            <div
+              className="progress-bar"
+              style={{
+                backgroundColor: '#e0e0e0',
+                height: '10px',
+                borderRadius: '5px',
+                overflow: 'hidden',
+                marginTop: '10px'
+              }}
+            >
+              <div
+                className="progress"
+                style={{
+                  width: `${generationProgress}%`,
+                  backgroundColor: '#3b82f6',
+                  height: '100%',
+                  transition: 'width 0.5s ease-in-out'
+                }}
+              ></div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
