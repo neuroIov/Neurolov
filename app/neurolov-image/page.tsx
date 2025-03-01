@@ -2,14 +2,22 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Download, Image, Palette, Wand2, Loader2, Sparkles, Trash2, X, Settings, Share2, Copy } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ArrowLeft,
+  Download,
+  Image,
+  Palette,
+  Wand2,
+  Loader2,
+  Sparkles,
+  Trash2,
+  X,
+  Settings,
+  Share2,
+  Copy
+} from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useUser } from '@/app/auth/useUser';
 import './neuroStyle.css';
 
@@ -41,10 +49,9 @@ export default function NeuroImageGenerator() {
   const [generationProgress, setGenerationProgress] = useState(0);
   const [userName, setUserName] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  // For per-image share overlay (stores index of image whose share overlay is open)
   const [activeShareIndex, setActiveShareIndex] = useState<number | null>(null);
 
-  // Filter out logs containing API endpoint details in production
+  // Hide sensitive API endpoint logging in production.
   React.useEffect(() => {
     if (process.env.NODE_ENV !== 'development') {
       const originalLog = console.log;
@@ -83,45 +90,103 @@ export default function NeuroImageGenerator() {
     router.push('/ai-models');
   };
 
+  // Return a ControlNet config based on the selected style.
+  const getControlnetConfig = (style: string) => {
+    switch (style) {
+      case 'photorealistic':
+        return {
+          model: 'controlnet-photorealistic',
+          guidance_scale: 1.0,
+          strength: 0.8,
+        };
+      case 'painting':
+        return {
+          model: 'controlnet-painting',
+          guidance_scale: 0.9,
+          strength: 0.7,
+        };
+      case 'cartoon':
+        return {
+          model: 'controlnet-cartoon',
+          guidance_scale: 1.1,
+          strength: 0.85,
+        };
+      case 'abstract':
+        return {
+          model: 'controlnet-abstract',
+          guidance_scale: 1.2,
+          strength: 0.9,
+        };
+      case 'anime':
+        return {
+          model: 'controlnet-anime',
+          guidance_scale: 1.0,
+          strength: 0.8,
+        };
+      default:
+        return null;
+    }
+  };
+
+  // Append a style-specific hint to the prompt.
+  const getStyledPrompt = (basePrompt: string, style: string) => {
+    let styleHint = '';
+    switch (style) {
+      case 'photorealistic':
+        styleHint = ' in a photorealistic style';
+        break;
+      case 'painting':
+        styleHint = ' as a beautiful painting with brush strokes and vivid colors';
+        break;
+      case 'cartoon':
+        styleHint = ' in a vibrant cartoon style with bold lines and bright colors';
+        break;
+      case 'abstract':
+        styleHint = ' in an abstract style with imaginative shapes and colors';
+        break;
+      case 'anime':
+        styleHint = ' in an anime style with sharp lines and dramatic expressions';
+        break;
+      default:
+        styleHint = '';
+    }
+    return basePrompt + styleHint;
+  };
+
   const handleGenerate = async () => {
     if (!prompt.trim() || isGenerating) return;
     setIsGenerating(true);
 
-    // Show progress dialog and reset progress.
+    // Show progress dialog and start progress simulation.
     setShowProgressDialog(true);
     setGenerationProgress(0);
-
-    // Start a simulated progress update interval with smaller increments for smoothness.
     const intervalId = setInterval(() => {
       setGenerationProgress(prev => (prev < 90 ? prev + 3 : prev));
     }, 100);
 
-    // Create enhanced prompt with metadata for API call only.
-    const enhancedPrompt = `${prompt}\n\nSettings:\n- Size: ${selectedSize}\n- Style: ${selectedStyle}\n${enhance ? '- Enhanced: Yes' : ''}`;
+    // Create a prompt that includes style-specific hints.
+    const finalPrompt = getStyledPrompt(prompt, selectedStyle);
 
-    // Store only the raw prompt in the chat history.
-    const promptMessage: ChatMessage = {
-      type: 'prompt',
-      content: prompt
-    };
+    // Log only the raw prompt in history.
+    const promptMessage: ChatMessage = { type: 'prompt', content: prompt };
     setChatHistory(prev => [...prev, promptMessage]);
 
     try {
       const [width, height] = selectedSize.split('x').map(Number);
-      
+      const controlnetConfig = getControlnetConfig(selectedStyle);
+
       const response = await fetch('/api/Neurolov-image-generator', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt,
+          prompt: finalPrompt,
           width,
           height,
           num_samples: 1,
           enhance_prompt: enhance,
           art_style: selectedStyle,
-          negative_prompt: 'blurry, low quality, distorted, deformed'
+          negative_prompt: 'blurry, low quality, distorted, deformed',
+          controlnet: controlnetConfig
         })
       });
 
@@ -193,7 +258,7 @@ export default function NeuroImageGenerator() {
     setSelectedImage(null);
   };
 
-  // Functions for per-image sharing
+  // Sharing functions for individual images.
   const shareImageOnTwitter = (imageUrl: string) => {
     const url = `https://twitter.com/intent/tweet?url=${encodeURIComponent(imageUrl)}&text=${encodeURIComponent("Check out this cool image!")}`;
     window.open(url, '_blank');
@@ -221,9 +286,8 @@ export default function NeuroImageGenerator() {
     setActiveShareIndex(null);
   };
 
-  // Global share functions (for sharing current page)
+  // Global sharing functions.
   const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
-
   const shareOnTwitter = () => {
     const url = `https://twitter.com/intent/tweet?url=${encodeURIComponent(currentUrl)}&text=${encodeURIComponent("Check out this cool image!")}`;
     window.open(url, '_blank');
@@ -241,22 +305,11 @@ export default function NeuroImageGenerator() {
     setShowShareDialog(false);
   };
 
-  const sizeOptions = [
-    '512x512',
-    '1024x1024'
-  ];
-
-  const styleOptions = [
-    'photorealistic',
-    'painting',
-    'cartoon',
-    'abstract',
-    'anime'
-  ];
+  const sizeOptions = ['512x512', '1024x1024'];
+  const styleOptions = ['photorealistic', 'painting', 'cartoon', 'abstract', 'anime'];
 
   return (
     <>
-      {/* Main content area */}
       <div className="main-content" style={{ left: 0 }}>
         <div className="sticky-header compact-header">
           <button className="back-button" onClick={handleBack}>
@@ -274,7 +327,6 @@ export default function NeuroImageGenerator() {
             </div>
           </div>
 
-          {/* Chat messages and generated images */}
           <div className="generated-images">
             {chatHistory.map((message, index) => (
               <div key={index} className={`chat-message ${message.type}`}>
@@ -285,8 +337,6 @@ export default function NeuroImageGenerator() {
                 ) : (
                   <div className="image-card" style={{ position: 'relative' }}>
                     <img src={message.image} alt={message.content} onClick={() => handleImageClick(message.image!)} />
-                    
-                    {/* Existing image metadata overlay */}
                     <div className="image-overlay">
                       <div className="image-metadata">
                         {message.metadata?.size && <span className="metadata-tag">{message.metadata.size}</span>}
@@ -294,8 +344,6 @@ export default function NeuroImageGenerator() {
                         {message.metadata?.enhance && <span className="metadata-tag enhance">Enhanced</span>}
                       </div>
                     </div>
-                    
-                    {/* Share icon at top right corner (black icon, white bg) */}
                     <button
                       className="share-icon"
                       style={{
@@ -310,15 +358,11 @@ export default function NeuroImageGenerator() {
                         zIndex: 2,
                         boxShadow: '0 0 4px rgba(0,0,0,0.2)'
                       }}
-                      onClick={() =>
-                        setActiveShareIndex(activeShareIndex === index ? null : index)
-                      }
+                      onClick={() => setActiveShareIndex(activeShareIndex === index ? null : index)}
                       aria-label="Share image"
                     >
                       <Share2 className="icon" style={{ color: 'black' }} />
                     </button>
-                    
-                    {/* Share overlay options for this image */}
                     {activeShareIndex === index && (
                       <div
                         className="share-overlay"
@@ -351,13 +395,7 @@ export default function NeuroImageGenerator() {
                         </Button>
                       </div>
                     )}
-
-                    {/* Existing download button */}
-                    <Button
-                      className="download-button"
-                      onClick={() => handleDownload(message.image!)}
-                      aria-label="Download image"
-                    >
+                    <Button className="download-button" onClick={() => handleDownload(message.image!)} aria-label="Download image">
                       <Download className="h-4 w-4" />
                     </Button>
                   </div>
@@ -368,7 +406,6 @@ export default function NeuroImageGenerator() {
         </div>
       </div>
 
-      {/* Image Modal */}
       {selectedImage && (
         <div className="image-modal" onClick={handleCloseModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -380,7 +417,6 @@ export default function NeuroImageGenerator() {
         </div>
       )}
 
-      {/* Prompt and Settings Dialogs */}
       <div className="prompt-dialog" style={{ left: 0 }}>
         <div className="prompt-input">
           <textarea
@@ -395,32 +431,19 @@ export default function NeuroImageGenerator() {
             }}
           />
           <div className="feature-buttons">
-            <button 
-              className="feature-button"
-              onClick={() => setShowShareDialog(true)}
-            >
+            <button className="feature-button" onClick={() => setShowShareDialog(true)}>
               <Share2 className="icon" />
               Share
             </button>
-
             <button className="clear-history" onClick={handleClearHistory}>
               <Trash2 className="icon" />
               Clear History
             </button>
-            
-            <button 
-              className="feature-button"
-              onClick={() => setShowSettingsDialog(true)}
-            >
+            <button className="feature-button" onClick={() => setShowSettingsDialog(true)}>
               <Settings className="icon" />
               Settings
             </button>
-
-            <button
-              className="generate-button"
-              onClick={handleGenerate}
-              disabled={isGenerating || !prompt.trim()}
-            >
+            <button className="generate-button" onClick={handleGenerate} disabled={isGenerating || !prompt.trim()}>
               {isGenerating ? (
                 <>
                   <Loader2 className="icon animate-spin" />
@@ -435,7 +458,6 @@ export default function NeuroImageGenerator() {
             </button>
           </div>
 
-          {/* Global Share Dialog with white background and black text */}
           <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
             <DialogContent className="dialog-content" style={{ backgroundColor: '#fff', color: 'black' }}>
               <DialogHeader>
@@ -455,14 +477,13 @@ export default function NeuroImageGenerator() {
             </DialogContent>
           </Dialog>
 
-          {/* Settings Dialog */}
           <Dialog open={showSettingsDialog} onOpenChange={setShowSettingsDialog}>
             <DialogContent className="dialog-content">
               <DialogHeader>
                 <DialogTitle>Image Settings</DialogTitle>
               </DialogHeader>
               <div className="settings-options">
-                <button 
+                <button
                   className="feature-button"
                   onClick={() => {
                     setShowSizeDialog(true);
@@ -472,8 +493,7 @@ export default function NeuroImageGenerator() {
                   <Image className="icon" />
                   Image Size
                 </button>
-
-                <button 
+                <button
                   className="feature-button"
                   onClick={() => {
                     setShowStyleDialog(true);
@@ -483,8 +503,7 @@ export default function NeuroImageGenerator() {
                   <Palette className="icon" />
                   Style
                 </button>
-
-                <button 
+                <button
                   className={`feature-button ${enhance ? 'active' : ''}`}
                   onClick={() => {
                     setEnhance(!enhance);
@@ -498,7 +517,6 @@ export default function NeuroImageGenerator() {
             </DialogContent>
           </Dialog>
 
-          {/* Image Size Dialog */}
           <Dialog open={showSizeDialog} onOpenChange={setShowSizeDialog}>
             <DialogContent className="dialog-content">
               <DialogHeader>
@@ -522,7 +540,6 @@ export default function NeuroImageGenerator() {
             </DialogContent>
           </Dialog>
 
-          {/* Style Dialog */}
           <Dialog open={showStyleDialog} onOpenChange={setShowStyleDialog}>
             <DialogContent className="dialog-content">
               <DialogHeader>
@@ -547,7 +564,7 @@ export default function NeuroImageGenerator() {
           </Dialog>
         </div>
       </div>
-      {/* Progress Dialog */}
+
       <Dialog open={showProgressDialog} onOpenChange={setShowProgressDialog}>
         <DialogContent className="dialog-content">
           <DialogHeader>
