@@ -1,0 +1,19 @@
+[build]
+  command = "npx pnpm install && npx pnpm run build"
+  publish = ".next"
+
+[build.environment]
+  NEXT_USE_NETLIFY_EDGE = "true"
+  NEXT_TELEMETRY_DISABLED = "1"
+  NODE_VERSION = "20"
+  NPM_FLAGS = "--version"
+  NEXT_PUBLIC_SITE_URL = "https://app.neurolov.ai"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[[redirects]]
+  from = "https://main--neurolov-compute.netlify.app/*"
+  to = "https://app.neurolov.ai/:splat"
+  status = 301
+  force = true

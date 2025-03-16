@@ -1,0 +1,23 @@
+.infoCard {
+  @apply p-6 bg-card rounded-lg shadow-sm;
+}
+
+.infoSection {
+  @apply space-y-4;
+}
+
+.infoTitle {
+  @apply text-lg font-semibold;
+}
+
+.infoContent {
+  @apply text-muted-foreground;
+}
+
+.linkList {
+  @apply mt-4 space-y-2;
+}
+
+.infoLink {
+  @apply text-primary hover:underline;
+}

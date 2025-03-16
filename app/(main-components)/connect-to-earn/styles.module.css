@@ -1,0 +1,23 @@
+.connectCard {
+  @apply p-6 bg-card rounded-lg shadow-sm hover:shadow-md transition-all;
+}
+
+.statsGrid {
+  @apply mt-4 grid grid-cols-2 gap-4;
+}
+
+.statItem {
+  @apply flex flex-col space-y-2;
+}
+
+.statValue {
+  @apply text-2xl font-semibold;
+}
+
+.statLabel {
+  @apply text-sm text-muted-foreground;
+}
+
+.actionButton {
+  @apply mt-6 w-full py-2 bg-primary text-primary-foreground rounded-md hover:opacity-90 transition-opacity;
+}

@@ -1,0 +1,27 @@
+.settingsCard {
+  @apply p-6 bg-card rounded-lg shadow-sm;
+}
+
+.settingSection {
+  @apply py-4 border-b last:border-0;
+}
+
+.settingTitle {
+  @apply text-lg font-semibold mb-2;
+}
+
+.settingDescription {
+  @apply text-sm text-muted-foreground mb-4;
+}
+
+.formGroup {
+  @apply space-y-2;
+}
+
+.switchItem {
+  @apply flex items-center justify-between;
+}
+
+.dangerZone {
+  @apply mt-8 p-4 border-2 border-destructive rounded-lg;
+}

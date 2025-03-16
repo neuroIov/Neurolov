@@ -1,0 +1,11 @@
+.dashboard-card {
+  @apply p-6 cursor-pointer transition-all duration-300;
+}
+
+.dashboard-card:hover {
+  @apply scale-105;
+}
+
+.icon-container {
+  @apply mb-4 p-2 rounded-lg inline-block;
+}

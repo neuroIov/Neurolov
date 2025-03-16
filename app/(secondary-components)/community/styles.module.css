@@ -1,0 +1,19 @@
+.communityCard {
+  @apply p-6 bg-card rounded-lg shadow-sm;
+}
+
+.memberList {
+  @apply mt-4 space-y-4;
+}
+
+.memberItem {
+  @apply flex items-center space-x-4;
+}
+
+.memberAvatar {
+  @apply w-10 h-10 rounded-full;
+}
+
+.communityStats {
+  @apply mt-6 grid grid-cols-3 gap-4 text-sm text-muted-foreground;
+}

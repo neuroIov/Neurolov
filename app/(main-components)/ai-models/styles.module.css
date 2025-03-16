@@ -1,0 +1,25 @@
+.aiModelCard {
+  @apply p-6 bg-card rounded-lg shadow-sm hover:shadow-md transition-all;
+}
+
+.modelStats {
+  @apply mt-4 grid grid-cols-2 gap-4 text-sm text-muted-foreground;
+}
+
+.modelAction {
+  @apply mt-6 flex justify-end space-x-4;
+}
+
+@media screen and (min-width:300px) and (max-width:600px) {
+  .vid {
+    @apply hidden
+  }
+
+  .totalvidbody {
+    @apply p-0
+  }
+
+  .vidicon {
+    @apply m-0
+  }
+}

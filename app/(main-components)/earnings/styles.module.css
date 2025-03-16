@@ -1,0 +1,23 @@
+.earningsCard {
+  @apply p-6 bg-card rounded-lg shadow-sm;
+}
+
+.balanceDisplay {
+  @apply text-3xl font-bold mt-4;
+}
+
+.balanceBtn {
+  @apply inline-block w-full py-3.5 px-7 text-base bg-primary text-primary-foreground rounded-md hover:opacity-90 transition-opacity;
+}
+
+.transactionList {
+  @apply mt-6 space-y-4;
+}
+
+.transactionItem {
+  @apply flex justify-between items-center p-4 bg-muted rounded-lg;
+}
+
+.chartSection {
+  @apply mt-8;
+}
