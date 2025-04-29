@@ -327,6 +327,7 @@ export default function NeuroImageGenerator() {
         setChatHistory(prev => prev.map((msg, i) => 
           i === prev.length - 1 ? { ...msg, image: data.images[0] } : msg
         ));
+        await supabase.rpc("add_img_gen_message", { p_user_id: user?.id, p_content: prompt });
         updateQuestProgressApi();
         updateQuestProgress('img_gen',40);
       }
