@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useUser } from '@/app/auth/useUser';
-import { signInWithProvider, getSupabaseClient } from '@/app/auth/supabase';
+import { signInWithProvider, signInWithEmail, signUpWithEmail, getSupabaseClient } from '@/app/auth/supabase';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -20,6 +20,10 @@ export default function RootPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [subscribed, setSubscribed] = useState(true);
   const [referralCode, setReferralCode] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [emailLoading, setEmailLoading] = useState(false);
   const [inputReferralCode, setInputReferralCode] = useState('');
   const [showReferralInput, setShowReferralInput] = useState(false);
   const [isLoadingReferral, setIsLoadingReferral] = useState(false);
@@ -175,8 +179,8 @@ export default function RootPage() {
       </div>
 
       {/* Main Content Section */}
-      <div className="w-full md:w-1/2 bg-[#0066FF] flex items-center h-[50vh] md:h-[100dvh] justify-center p-4 md:p-8 relative z-10">
-        <div className="w-full max-w-lg space-y-4 md:space-y-6 px-4">
+      <div className="w-full md:w-1/2 bg-[#0066FF] flex items-center h-[50vh] md:h-[100dvh] justify-center relative z-10">
+        <div className="w-full max-w-[400px] md:max-w-[600px] space-y-4 px-4 md:px-8">
 
           {/* <h1 className="text-2xl md:text-3xl font-bold text-white text-center leading-tight">
           Decentralized GPU Compute & AI Agents on Solana Blockchain
@@ -186,9 +190,14 @@ export default function RootPage() {
         <h2 className="text-lg md:text-xl font-semibold text-white text-center">
           Rent GPUs, Generate AI Models, and Join the NLOV Token Presale
         </h2> */}
-          <h1 className='text-2xl md:text-3xl font-bold text-white text-center leading-tight'>
-            Sign in to Neurolov
-          </h1>
+          <div className="text-white mb-8 md:mb-12">
+            <div className='text-sm md:text-xl font-normal mb-1 md:mb-2'>
+              Welcome to
+            </div>
+            <div className='text-2xl md:text-5xl font-semibold'>
+              NEUROLOV
+            </div>
+          </div>
 
           <div className="space-y-4">
             {/* Referral code section */}
@@ -224,31 +233,134 @@ export default function RootPage() {
               </div>
             )}
 
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full bg-white text-[#0066FF] hover:bg-white/90 py-6"
-              onClick={handleGoogleAuth}
-              disabled={isLoading}
-            >
-              {isLoading ? 'Signing in...' : 'Continue with Google'}
-            </Button>
-          </div>
+            <div className="space-y-6 w-full">
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <label className="flex items-center gap-1 text-[13px] md:text-lg text-white/90">
+                    <span className="text-[#00FF85]">*</span> Email
+                  </label>
+                  <Input
+                    type="email"
+                    placeholder="eg. hello@world.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="h-12 md:h-16 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40 focus:ring-0 text-sm md:text-lg rounded-[4px]"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-1 text-[13px] md:text-lg text-white/90">
+                    <span className="text-[#00FF85]">*</span> Password
+                  </label>
+                  <Input
+                    type="password"
+                    placeholder="••••••••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="h-12 md:h-16 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40 focus:ring-0 text-sm md:text-lg rounded-[4px]"
+                  />
+                </div>
+                <div className="flex justify-end mb-4">
+                  <button
+                    onClick={() => setIsSignUp(!isSignUp)}
+                    className="text-[#00FF85] hover:underline text-sm md:text-base"
+                  >
+                    {isSignUp ? 'Already have an account? Log in' : 'Don\'t have an account? Sign up'}
+                  </button>
+                </div>
+                <Button
+                  type="button"
+                  className="w-full h-12 md:h-16 bg-white text-[#0066FF] hover:bg-white/90 font-medium text-sm md:text-lg"
+                  onClick={async () => {
+                    if (!email || !password) {
+                      toast.error('Please enter both email and password');
+                      return;
+                    }
+                    setEmailLoading(true);
+                    try {
+                      if (isSignUp) {
+                        const { data, error } = await signUpWithEmail(email, password);
+                        console.log('Sign up response:', { data, error });
+                        
+                        if (error) {
+                          toast.error(error.message);
+                        } else {
+                          // Check if the user needs to confirm their email
+                          if (!data?.user?.email_confirmed_at) {
+                            toast.success(
+                              'Almost there! Please check your email for a verification link. ' +
+                              'You need to verify your email before you can sign in.'
+                            );
+                            // Switch to login mode after successful signup
+                            setIsSignUp(false);
+                          } else {
+                            toast.success('Sign up successful!');
+                            router.replace('/dashboard');
+                          }
+                        }
+                      } else {
+                        const { data, error } = await signInWithEmail(email, password);
+                        if (error) {
+                          if (error.message.includes('Email not confirmed')) {
+                            toast.error('Please verify your email address first. Check your inbox for the verification link.');
+                          } else {
+                            toast.error(error.message);
+                          }
+                        } else if (data) {
+                          toast.success('Login successful!');
+                          router.replace('/dashboard');
+                        }
+                      }
+                    } catch (err: any) {
+                      console.error('Auth error:', err);
+                      toast.error(err?.message || 'An error occurred during authentication');
+                    } finally {
+                      setEmailLoading(false);
+                    }
+                  }}
+                  disabled={emailLoading}
+                >
+                  {emailLoading ? 'Processing...' : (isSignUp ? 'Sign up' : 'Log in')}
+                </Button>
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="newsletter"
+                      checked={subscribed}
+                      onCheckedChange={(checked) => setSubscribed(checked as boolean)}
+                      className="border-white/20 data-[state=checked]:bg-[#00FF85] data-[state=checked]:text-white"
+                    />
+                    <label
+                      htmlFor="newsletter"
+                      className="text-[13px] md:text-lg text-white/80 leading-tight cursor-pointer"
+                    >
+                      Subscribe to newsletter
+                    </label>
+                  </div>
+                  <button className="text-[13px] md:text-lg text-[#00FF85] hover:underline">
+                    Forgot Password?
+                  </button>
+                </div>
+              </div>
 
-          <div className="flex items-start space-x-2 ml-1">
-            <Checkbox
-              id="newsletter"
-              checked={subscribed}
-            
-              onCheckedChange={(checked) => setSubscribed(checked as boolean)}
-              className="border-white data-[state=checked]:bg-white data-[state=checked]:text-[#0066FF] mt-1"
-            />
-            <label
-              htmlFor="newsletter"
-              className="text-sm text-white leading-tight mt-[3px]"
-            >
-              Subscribe to our newsletter for updates and news
-            </label>
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-white/20"></span>
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-[#0066FF] px-2 text-white/60">Or continue with</span>
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full h-12 md:h-16 bg-white/10 text-white border-white/20 hover:bg-white/20 font-medium text-sm md:text-lg"
+                onClick={handleGoogleAuth}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Signing in...' : 'Google'}
+              </Button>
+            </div>
           </div>
 
           {/* Internal Links */}

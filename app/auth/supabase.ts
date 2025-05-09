@@ -7,16 +7,7 @@ const MIN_AUTH_INTERVAL = 2000; // Minimum 2 seconds between auth attempts
 
 export const getSupabaseClient = () => {
   if (!supabase) {
-    supabase = createClientComponentClient({
-      options: {
-        auth: {
-          persistSession: true,
-          autoRefreshToken: true,
-          detectSessionInUrl: true,
-          flowType: 'pkce'
-        }
-      }
-    });
+    supabase = createClientComponentClient();
   }
   return supabase;
 };
@@ -35,7 +26,69 @@ const isInstagramBrowser = () => /Instagram/.test(window.navigator.userAgent);
 const isIOSDevice = () => /iPhone|iPad|iPod/.test(window.navigator.userAgent);
 const isAndroidDevice = () => /Android/.test(window.navigator.userAgent);
 
-// Simple auth helpers
+// Auth helpers
+export const signInWithEmail = async (email: string, password: string) => {
+  try {
+    checkRateLimit();
+    const client = getSupabaseClient();
+    const { data, error } = await client.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      if (error.status === 429) {
+        throw new Error('Too many sign-in attempts. Please wait a few minutes and try again.');
+      }
+      throw error;
+    }
+
+    return { data, error: null };
+  } catch (error: any) {
+    console.error('Email sign in error:', error);
+    return { 
+      data: null, 
+      error: {
+        message: error.message || 'An error occurred during sign in',
+        status: error.status || 500
+      }
+    };
+  }
+};
+
+export const signUpWithEmail = async (email: string, password: string) => {
+  try {
+    checkRateLimit();
+    const client = getSupabaseClient();
+    const { data, error } = await client.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`
+      }
+    });
+
+    if (error) {
+      if (error.status === 429) {
+        throw new Error('Too many sign-up attempts. Please wait a few minutes and try again.');
+      }
+      throw error;
+    }
+
+    return { data, error: null };
+  } catch (error: any) {
+    console.error('Email sign up error:', error);
+    return { 
+      data: null, 
+      error: {
+        message: error.message || 'An error occurred during sign up',
+        status: error.status || 500
+      }
+    };
+  }
+};
+
+// OAuth provider auth helper
 export const signInWithProvider = async (provider: 'google' | 'github') => {
   try {
     // Check rate limit

@@ -107,6 +107,7 @@ function MainLayout({
   const handleLogout = async () => {
     try {
       await signOut();
+      router.push('/');
     } catch (error) {
       console.error('Error during logout:', error);
     }
@@ -196,7 +197,10 @@ function MainLayout({
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     className="flex items-center justify-center p-3 text-gray-300 hover:text-white focus:text-white cursor-pointer"
-                    onClick={handleLogout}
+                    onClick={async () => {
+                      await handleLogout();
+                      router.push('/');
+                    }}
                   >
                     Log out
                   </DropdownMenuItem>
