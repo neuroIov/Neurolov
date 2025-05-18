@@ -263,13 +263,47 @@ function MainLayout({
                     <div className="flex items-center justify-between w-full">
                       <div className="flex items-center space-x-3">
                         <Icon className="h-5 w-5" />
-                        {item.showAnimatedLock ? (
-                          <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full text-white bg-[#06115D]">
-                            COMING SOON
-                          </span>
-                        ) : (
-                          <span>{item.name}</span>
-                        )}
+                        <div className="relative">
+                          {item.name === 'NeuroSwarm' ? (
+                            <>
+                              <motion.span
+                                key="coming-soon"
+                                initial={{ opacity: 0 }}
+                                animate={{ 
+                                  opacity: [0, 0, 1, 1, 0],
+                                }}
+                                transition={{
+                                  duration: 4,
+                                  times: [0, 0.625, 0.75, 0.875, 1],
+                                  repeat: Infinity,
+                                  ease: ["easeInOut", "easeInOut", "easeInOut", "easeInOut"]
+                                }}
+                                className="absolute left-0 right-0"
+                              >
+                                <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full text-white bg-[#06115D]">
+                                  COMING SOON
+                                </span>
+                              </motion.span>
+                              <motion.span
+                                key="item-name"
+                                initial={{ opacity: 1 }}
+                                animate={{ 
+                                  opacity: [1, 1, 0, 0, 1],
+                                }}
+                                transition={{ 
+                                  duration: 4,
+                                  times: [0, 0.625, 0.75, 0.875, 1],
+                                  repeat: Infinity,
+                                  ease: ["easeInOut", "easeInOut", "easeInOut", "easeInOut"]
+                                }}
+                              >
+                                {item.name}
+                              </motion.span>
+                            </>
+                          ) : (
+                            <span>{item.name}</span>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center space-x-2">
                         {item.isNew && (
@@ -332,13 +366,30 @@ function MainLayout({
                           <div className="flex items-center justify-between w-full">
                             <div className="flex items-center space-x-3">
                               <Icon className="h-5 w-5" />
-                              {item.showAnimatedLock ? (
-                                <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full text-white bg-[#06115D]">
-                                  COMING SOON
-                                </span>
-                              ) : (
-                                <span>{item.name}</span>
-                              )}
+                              <div className="relative">
+                                {item.showAnimatedLock && (
+                                  <motion.div
+                                    key="coming-soon-mobile"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.75, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
+                                    className="absolute"
+                                  >
+                                    <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full text-white bg-[#06115D]">
+                                      COMING SOON
+                                    </span>
+                                  </motion.div>
+                                )}
+                                <motion.div
+                                  key="item-name-mobile"
+                                  initial={{ opacity: 1 }}
+                                  animate={{ opacity: item.showAnimatedLock ? 0 : 1 }}
+                                  transition={{ duration: 0.75, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
+                                >
+                                  {item.name}
+                                </motion.div>
+                              </div>
                             </div>
                             <div className="flex items-center space-x-2">
                               {item.isNew && (
