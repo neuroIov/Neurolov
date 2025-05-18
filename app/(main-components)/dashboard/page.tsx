@@ -26,6 +26,7 @@ const DashboardPage = () => {
   const { user, loading } = useUser();
   const [showWelcomeModal, setShowWelcomeModal] = useState(true);
   const [userCredits, setUserCredits] = useState(0);
+  const [userPlan, setUserPlan] = useState('free');
 
   const [mounted, setMounted] = useState(false);
   const [referralProcessed, setReferralProcessed] = useState(false);
@@ -90,17 +91,18 @@ const DashboardPage = () => {
         const supabase = getSupabaseClient();
         const { data, error } = await supabase
           .from('profiles')
-          .select('credits')
+          .select('credits, plan')
           .eq('id', user.id)
           .single();
         
         if (error) {
-          console.error('Error fetching credits:', error);
+          console.error('Error fetching user data:', error);
           return;
         }
         
         if (data) {
           setUserCredits(data.credits);
+          setUserPlan(data.plan || 'free');
         }
       };
       
@@ -183,7 +185,7 @@ const welcome_user = [
         <div className="flex gap-8 mt-6">
           <div className="bg-gradient-to-br from-black/10 to-black/30 backdrop-blur-lg rounded-xl p-4 border border-white/5">
             <p className="text-gray-400 text-sm font-medium mb-1">Current Plan</p>
-            <p className="text-white text-xl font-semibold">free</p>
+            <p className="text-white text-xl font-semibold">{userPlan}</p>
           </div>
           <div className="bg-gradient-to-br from-black/10 to-black/30 backdrop-blur-lg rounded-xl p-4 border border-white/5 group relative overflow-hidden">
             <p className="text-gray-400 text-sm font-medium mb-1">Available Credits</p>

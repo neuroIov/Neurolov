@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 import { useUser } from '@/app/auth/useUser';
 import { signOut } from '@/app/auth/supabase';
 import Script from 'next/script';
-import { Bell, Search, Wallet, Settings, LayoutDashboard, Cpu, Brain, Coins, Users, Info, LogOut, User, Sparkles, Network, Menu, Twitter, Send } from 'lucide-react';
+import { Bell, Search, Wallet, Settings, LayoutDashboard, Cpu, Brain, Coins, Users, Info, LogOut, User, Sparkles, Network, Menu, Twitter, Send, Boxes, LucideIcon } from 'lucide-react';
 import { ThemeProvider } from "next-themes";
 import { Providers } from "@/components/providers";
 import { Toaster } from 'react-hot-toast';
@@ -22,16 +22,31 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ModalVisibilityManager } from "@/utils/modal-visiblity";
+import { PiCardsThree } from "react-icons/pi";
+import { AnimatedLockStatus } from "@/components/AnimatedLockStatus";
 
-const navigation = [
+
+
+type NavigationItem = {
+  name: string;
+  href: string;
+  icon: LucideIcon;
+  isNew?: boolean;
+  isLocked?: boolean;
+  disabled?: boolean;
+  showAnimatedLock?: boolean;
+};
+
+const navigation: NavigationItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Compute', href: '/gpu-marketplace', icon: Cpu,  },
+  { name: 'Compute', href: '/gpu-marketplace', icon: Cpu, },
   { name: 'AI Models', href: '/ai-models', icon: Brain, isNew: true },
   { name: 'AI Agents', href: '#', icon: Sparkles, isLocked: true, disabled: true },
-  { name: 'Earnings', href: '#', icon: Coins, isLocked: true, disabled: true },
-  { name: 'Connect to Earn', href: '#', icon: Network, isLocked: true, disabled: true },
-  { name: 'Wallet', href: '#', icon: Wallet, isLocked: true, disabled: true },
-  { name: 'Community', href: '#', icon: Users, isLocked: true, disabled: true },
+  { name: 'NeuroSwarm', href: '#', icon: Network, showAnimatedLock: true, disabled: true },
+  { name: 'Subscription', href: '/subscription', icon: Boxes, isLocked: false, disabled: false },
+  { name: 'Earnings', href: '/earnings', icon: Coins, isLocked: true, disabled: true },
+  { name: 'Community', href: '/community', icon: Users, isLocked: true, disabled: true },
   { name: 'Settings', href: '/settings', icon: Settings },
   { name: 'More info', href: '/more-info', icon: Info },
 ];
@@ -48,6 +63,8 @@ export default function RootLayout({
 }) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+
   const isAuthPage = pathname?.startsWith('/auth');
 
   return (
@@ -89,11 +106,11 @@ export default function RootLayout({
   );
 }
 
-function MainLayout({ 
+function MainLayout({
   children,
   isSidebarCollapsed,
   setIsSidebarCollapsed
-}: { 
+}: {
   children: React.ReactNode;
   isSidebarCollapsed: boolean;
   setIsSidebarCollapsed: (collapsed: boolean) => void;
@@ -106,19 +123,28 @@ function MainLayout({
 
   const handleLogout = async () => {
     try {
-      await signOut();
-      router.push('/');
+      console.log("Signing out...");
+      await signOut(); 
+      console.log("Sign-out successful");
+  
+      ModalVisibilityManager.resetModalVisibility("all");
+  
+      console.log("Redirecting to login page...");
+      router.replace('/'); 
+      window.location.reload();
+      console.log("Redirected");
     } catch (error) {
       console.error('Error during logout:', error);
     }
   };
+  
 
   // Don't show sidebar and header on the sign-in page
   const isSignInPage = pathname === '/';
   if (isSignInPage) {
     return <div className="min-h-screen bg-gradient-to-b from-black to-gray-900">{children}</div>;
   }
-  
+
   // Show loading state
   if (loading) {
     return (
@@ -147,7 +173,7 @@ function MainLayout({
               <img src="/neurolov-logo.svg" alt="Neurolov" className="h-8" />
             </Link>
 
-            
+
           </div>
 
           <div className="flex items-center space-x-4">
@@ -159,19 +185,19 @@ function MainLayout({
                 </svg>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" sideOffset={8} className="min-w-fit p-2 bg-black/90 backdrop-blur-xl border border-white/10 z-[50]">
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   className="flex items-center justify-center p-3 text-gray-300 hover:text-white focus:text-white cursor-pointer"
                   onClick={() => window.open('https://twitter.com/neurolov', '_blank')}
                 >
                   <Twitter className="h-8 w-8" />
                 </DropdownMenuItem>
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   className="flex items-center justify-center p-3 text-gray-300 hover:text-white focus:text-white cursor-pointer"
                   onClick={() => window.open('https://t.me/neurolovcommunity', '_blank')}
                 >
                   <Send className="h-8 w-8" />
                 </DropdownMenuItem>
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   className="flex items-center justify-center p-3 text-gray-300 hover:text-white focus:text-white cursor-pointer"
                   onClick={() => window.open('https://instagram.com/neurolov.ai', '_blank')}
                 >
@@ -189,18 +215,15 @@ function MainLayout({
                   <User className="h-6 w-6 text-gray-400" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" sideOffset={8} className="min-w-fit p-2 bg-black/90 backdrop-blur-xl border border-white/10 z-[50]">
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     className="flex items-center justify-center p-3 text-gray-300 hover:text-white focus:text-white cursor-pointer"
                     onClick={() => router.push('/auth/profile')}
                   >
                     Profile
                   </DropdownMenuItem>
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     className="flex items-center justify-center p-3 text-gray-300 hover:text-white focus:text-white cursor-pointer"
-                    onClick={async () => {
-                      await handleLogout();
-                      router.push('/');
-                    }}
+                    onClick={handleLogout}
                   >
                     Log out
                   </DropdownMenuItem>
@@ -230,25 +253,32 @@ function MainLayout({
                         return;
                       }
                     }}
-                    className={`group flex items-center justify-between px-4 py-3.5 text-base font-medium rounded-lg transition-colors ${
-                      isActive
-                        ? 'bg-white/10 text-white'
-                        : item.disabled
-                          ? 'text-gray-400 cursor-not-allowed'
-                          : 'text-gray-400 hover:text-white hover:bg-white/5'
-                    }`}
+                    className={`group flex items-center justify-between px-4 py-3.5 text-base font-medium rounded-lg transition-colors ${isActive
+                      ? 'bg-white/10 text-white'
+                      : item.disabled
+                        ? 'text-gray-400 cursor-not-allowed'
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                      }`}
                   >
-                    <div className="flex items-center space-x-3">
-                      <Icon className="h-5 w-5" />
-                      <span>{item.name}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {item.isNew && (
-                        <span className="px-2 py-1 text-xs font-semibold rounded-full text-white bg-[#06115D] animate-pulse">
-                          NEW
-                        </span>
-                      )}
-                      {item.isLocked && <LockIcon />}
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center space-x-3">
+                        <Icon className="h-5 w-5" />
+                        {item.showAnimatedLock ? (
+                          <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full text-white bg-[#06115D]">
+                            COMING SOON
+                          </span>
+                        ) : (
+                          <span>{item.name}</span>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {item.isNew && (
+                          <span className="px-2 py-1 text-xs font-semibold rounded-full text-white bg-[#06115D] animate-pulse">
+                            NEW
+                          </span>
+                        )}
+                        {(item.isLocked || item.showAnimatedLock) && <LockIcon />}
+                      </div>
                     </div>
                   </Link>
                 );
@@ -292,25 +322,32 @@ function MainLayout({
                             }
                             setIsMenuOpen(false);
                           }}
-                          className={`group flex items-center justify-between px-4 py-3.5 text-base font-medium rounded-lg transition-colors ${
-                            isActive
-                              ? 'bg-white/10 text-white'
-                              : item.disabled
-                                ? 'text-gray-400 cursor-not-allowed'
-                                : 'text-gray-400 hover:text-white hover:bg-white/5'
-                          }`}
+                          className={`group flex items-center justify-between px-4 py-3.5 text-base font-medium rounded-lg transition-colors ${isActive
+                            ? 'bg-white/10 text-white'
+                            : item.disabled
+                              ? 'text-gray-400 cursor-not-allowed'
+                              : 'text-gray-400 hover:text-white hover:bg-white/5'
+                            }`}
                         >
-                          <div className="flex items-center space-x-3">
-                            <Icon className="h-5 w-5" />
-                            <span>{item.name}</span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            {item.isNew && (
-                              <span className="px-2 py-1 text-xs font-semibold rounded-full text-white bg-[#06115D] animate-pulse">
-                                NEW
-                              </span>
-                            )}
-                            {item.isLocked && <LockIcon />}
+                          <div className="flex items-center justify-between w-full">
+                            <div className="flex items-center space-x-3">
+                              <Icon className="h-5 w-5" />
+                              {item.showAnimatedLock ? (
+                                <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full text-white bg-[#06115D]">
+                                  COMING SOON
+                                </span>
+                              ) : (
+                                <span>{item.name}</span>
+                              )}
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              {item.isNew && (
+                                <span className="px-2 py-1 text-xs font-semibold rounded-full text-white bg-[#06115D] animate-pulse">
+                                  NEW
+                                </span>
+                              )}
+                              {(item.isLocked || item.showAnimatedLock) && <LockIcon />}
+                            </div>
                           </div>
                         </Link>
                       );

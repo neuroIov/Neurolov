@@ -103,7 +103,7 @@ export const models: AIModel[] = [
     id: 'deepfake',
     name: 'AI Deepfake Studio',
     description: 'Create stunning face swaps in images and videos using advanced AI technology',
-    
+
     tags: ['Deepfake', 'AI', 'Face Swap'],
     iconBg: 'bg-purple-500/10',
     features: [
@@ -119,5 +119,5 @@ export const models: AIModel[] = [
       minVram: 32
     }
   },
-  
+
 ];

@@ -62,7 +62,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Badge } from '@/components/ui/badge';
 import WelcomeModal from '@/components/modals/WelcomeModal';
 
-const DEV_EMAILS = ['nitishmeswal@gmail.com', 'neohex262@gmail.com', 'neurolov.ai@gmail.com', 'jprateek961@gmail.com', 'aitipamulaprapitesh02@gmail.com', 'fackidacc084@gmail.com', ];
+const DEV_EMAILS = ['nitishmeswal@gmail.com', 'neohex262@gmail.com', 'neurolov.ai@gmail.com','nitishhh094@gmail.com', 'jprateek961@gmail.com', 'aitipamulaprapitesh02@gmail.com', 'fackidacc084@gmail.com','bhaveshshukla2003@gmail.com' ];
 
 interface DeployedContainer {
   id: string;
@@ -522,20 +522,6 @@ export default function AIModelsPage() {
                 </>
               )}
 
-              {/* Coming Soon Overlay */}
-              {!['neurolov-image', 'freedom-ai'].includes(model.id) && !isDev && (
-                <div className="absolute inset-0 z-10 backdrop-blur-md bg-black/50 flex items-center justify-center">
-                  <div className="text-center">
-                    <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
-                      Coming Soon
-                    </h3>
-                    <p className="text-gray-300 text-sm">
-                      This model will be available soon!
-                    </p>
-                  </div>
-                </div>
-              )}
-
               {/* Model Image */}
               <div className="relative h-40">
                 <Image
@@ -577,8 +563,7 @@ export default function AIModelsPage() {
                 <div className="flex items-center justify-between pt-2 border-t border-gray-800">
                   <Button
                     onClick={() => handleAddToBag(model)}
-                    disabled={!isDev && !['neurolov-image', 'freedom-ai'].includes(model.id)}
-                    className={`inline-flex items-center gap-1 ${!isDev && !['neurolov-image', 'freedom-ai'].includes(model.id) ? 'bg-gray-600 cursor-not-allowed' : 'bg-[#0066FF] hover:bg-[#0052CC]'} text-white px-4 py-2 rounded-full text-sm transition-colors`}
+                    className="inline-flex items-center gap-1 bg-[#0066FF] hover:bg-[#0052CC] text-white px-4 py-2 rounded-full text-sm transition-colors"
                   >
                     Launch App
                     <ArrowRight className="w-4 h-4" />
