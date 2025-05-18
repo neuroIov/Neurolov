@@ -160,10 +160,11 @@ function MainLayout({
       <header className="fixed top-0 z-[40] w-full border-b border-gray-800 bg-black/95">
         <div className="px-4 md:px-8 h-20 flex items-center justify-between relative">
           <div className="flex items-center gap-4 md:gap-12">
-            {/* Hamburger Menu */}
+            {/* Hamburger Menu - Hidden on desktop */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2 hover:bg-white/5 rounded-lg"
+              className="p-2 hover:bg-white/5 rounded-lg md:hidden"
+              aria-label="Toggle menu"
             >
               <Menu className="h-6 w-6 text-gray-400" />
             </button>

@@ -1,22 +1,70 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
-export const useTimeSpentTracker = (pageName: string) => {
+interface TimeSpentTrackerOptions {
+  targetDuration: number; // in seconds
+  messageType: string;
+  onComplete: () => void;
+}
+
+export const useTimeSpentTracker = ({
+  targetDuration,
+  messageType,
+  onComplete,
+}: TimeSpentTrackerOptions) => {
+  const [timeSpent, setTimeSpent] = useState(0);
+  const [isComplete, setIsComplete] = useState(false);
+  const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
+
+  // Calculate progress percentage
+  const progress = Math.min(100, (timeSpent / targetDuration) * 100);
+
+  // Reset tracker
+  const resetTimeSpent = useCallback(() => {
+    setTimeSpent(0);
+    setIsComplete(false);
+    if (intervalId) {
+      clearInterval(intervalId);
+      setIntervalId(null);
+    }
+  }, [intervalId]);
+
+  // Handle completion
   useEffect(() => {
-    const startTime = new Date().getTime();
-    
-    return () => {
-      const endTime = new Date().getTime();
-      const timeSpent = Math.round((endTime - startTime) / 1000); // in seconds
-      
-      // Here you can implement the actual time tracking logic
-      // For example, send this data to your analytics service
-      console.log(`Time spent on ${pageName}: ${timeSpent} seconds`);
-    };
-  }, [pageName]);
+    if (timeSpent >= targetDuration && !isComplete) {
+      setIsComplete(true);
+      onComplete();
+      if (intervalId) {
+        clearInterval(intervalId);
+        setIntervalId(null);
+      }
+    }
+  }, [timeSpent, targetDuration, isComplete, onComplete, intervalId]);
 
-  return null;
+  // Start tracking time when component mounts
+  useEffect(() => {
+    if (!intervalId && !isComplete) {
+      const id = setInterval(() => {
+        setTimeSpent(prev => prev + 1);
+      }, 1000);
+      setIntervalId(id);
+    }
+
+    // Cleanup interval on unmount
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [intervalId, isComplete]);
+
+  return {
+    timeSpent,
+    isComplete,
+    progress,
+    resetTimeSpent,
+  };
 };
 
 export default useTimeSpentTracker;
