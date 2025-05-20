@@ -157,11 +157,11 @@ const defaultOptions: GenerationOptions = {
 const samplePrompts = [
   {
     prompt: 'Pumpkin-headed child, orange clothes',
-    image: '/images/toy.png',
+    image: 'pumpkin head.png',
   },
   {
     prompt: 'Tiny, cute baby turtle, orange and metallic shell with lines',
-    image: '/images/toy1.png',
+    image: 'baby turtle.png',
   },
 ];
 

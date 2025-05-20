@@ -507,12 +507,12 @@ export default function AIModelsPage() {
       </div>
 
       {/* Models Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
         {view === 'explore' ? (
           filteredModels.map((model) => (
             <div
               key={model.id}
-              className="relative bg-[#141414] rounded-xl overflow-hidden hover:scale-[1.02] transition-transform duration-300"
+              className="relative flex flex-col bg-[#141414] rounded-xl overflow-hidden hover:scale-[1.02] transition-transform duration-300 h-full"
             >
               {/* New & Beta Badges - Only show for neurolov-image or dev users */}
               {(model.id === 'neurolov-image' || isDev) && (
@@ -544,40 +544,44 @@ export default function AIModelsPage() {
               </div>
 
               {/* Model Details */}
-              <div className="p-4">
-                <p className="text-gray-300 text-sm mb-4">
-                  {model.description}
-                </p>
+              <div className="p-5 flex flex-col h-full">
+                <div className="flex flex-col h-full space-y-4">
+                  <div className="space-y-4">
+                    <p className="text-gray-300 text-base leading-relaxed line-clamp-3">
+                      {model.description}
+                    </p>
 
-                {/* Features List */}
-                <ul className="space-y-2 mb-4">
-                  {model.features.map((feature, index) => (
-                    <li key={index} className="flex items-center gap-2 text-gray-300 text-sm">
-                      <CheckCircle2 className="w-4 h-4 text-[#00FF94]" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-
-                {/* Actions */}
-                <div className="flex items-center justify-between pt-2 border-t border-gray-800">
-                  <Button
-                    onClick={() => handleAddToBag(model)}
-                    className="inline-flex items-center gap-1 bg-[#0066FF] hover:bg-[#0052CC] text-white px-4 py-2 rounded-full text-sm transition-colors"
-                  >
-                    Launch App
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
-                  <button
-                    onClick={(e) => handleLike(model.id, e)}
-                    className="flex items-center gap-1 text-gray-400 hover:text-white transition-colors text-sm"
-                  >
-                    <Heart
-                      className={`w-4 h-4 ${modelLikes[model.id]?.isLiked ? 'fill-red-500 text-red-500' : ''}`}
-                    />
-                    <span>{modelLikes[model.id]?.count || 0}</span>
-                  </button>
-                </div>
+                    {/* Features List */}
+                    <ul className="space-y-2.5">
+                      {model.features?.slice(0, 3).map((feature: string, index: number) => (
+                        <li key={index} className="flex items-start gap-3 text-gray-300 text-sm">
+                          <CheckCircle2 className="w-4 h-4 text-[#00FF94] mt-0.5 flex-shrink-0" />
+                          <span className="leading-snug">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  </div>
+                  
+                  {/* Actions - This will now be at the bottom of each card */}
+                  <div className="mt-5 pt-4 border-t border-gray-800 flex justify-between items-center">
+                    <Button
+                      onClick={() => handleAddToBag(model)}
+                      className="inline-flex items-center gap-2 bg-[#0066FF] hover:bg-[#0052CC] text-white px-5 py-2.5 rounded-full text-base font-medium transition-colors"
+                    >
+                      Launch App
+                      <ArrowRight className="w-5 h-5" />
+                    </Button>
+                    <button
+                      onClick={(e) => handleLike(model.id, e)}
+                      className="flex items-center gap-1 text-gray-400 hover:text-white transition-colors text-sm"
+                    >
+                      <Heart
+                        className={`w-5 h-5 ${modelLikes[model.id]?.isLiked ? 'fill-red-500 text-red-500' : ''}`}
+                      />
+                      <span>{modelLikes[model.id]?.count || 0}</span>
+                    </button>
+                  </div>
               </div>
             </div>
           ))
@@ -585,7 +589,7 @@ export default function AIModelsPage() {
           deployedContainers.map((container) => (
             <div
               key={container.id}
-              className="relative bg-[#141414] rounded-xl overflow-hidden hover:scale-[1.02] transition-transform duration-300"
+              className="relative flex flex-col bg-[#141414] rounded-xl overflow-hidden hover:scale-[1.02] transition-transform duration-300 h-full"
             >
               {/* Model Image */}
               <div className="relative h-40">
@@ -609,40 +613,44 @@ export default function AIModelsPage() {
               </div>
 
               {/* Model Details */}
-              <div className="p-4">
-                <p className="text-gray-300 text-sm mb-4">
-                  {container.model_description}
-                </p>
+              <div className="p-5 flex flex-col h-full">
+                <div className="flex flex-col h-full space-y-4">
+                  <div className="space-y-4">
+                    <p className="text-gray-300 text-base leading-relaxed line-clamp-3">
+                      {container.model_description}
+                    </p>
 
-                {/* Features List */}
-                <ul className="space-y-2 mb-4">
-                  {container.model_features.map((feature, index) => (
-                    <li key={index} className="flex items-center gap-2 text-gray-300 text-sm">
-                      <CheckCircle2 className="w-4 h-4 text-[#00FF94]" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-
-                {/* Actions */}
-                <div className="flex items-center justify-between pt-2 border-t border-gray-800">
-                  <Button
-                    onClick={() => handleDeleteModel(container)}
-                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full flex items-center gap-1 text-sm"
-                  >
-                    Delete Model
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                  <button
-                    onClick={(e) => handleLike(container.model_name, e)}
-                    className="flex items-center gap-1 text-gray-400 hover:text-white transition-colors text-sm"
-                  >
-                    <Heart
-                      className={`w-4 h-4 ${modelLikes[container.model_name]?.isLiked ? 'fill-red-500 text-red-500' : ''
-                        }`}
-                    />
-                    <span>{modelLikes[container.model_name]?.count || 0}</span>
-                  </button>
+                    {/* Features List */}
+                    <ul className="space-y-2.5">
+                      {container.model_features?.slice(0, 3).map((feature: string, index: number) => (
+                        <li key={index} className="flex items-start gap-3 text-gray-300 text-sm">
+                          <CheckCircle2 className="w-4 h-4 text-[#00FF94] mt-0.5 flex-shrink-0" />
+                          <span className="leading-snug">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+                <div className="mt-auto">
+                  {/* Actions */}
+                  <div className="mt-4 pt-4 border-t border-gray-800 flex justify-between items-center">
+                    <Button
+                      onClick={() => handleDeleteModel(container)}
+                      className="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-full flex items-center gap-2 text-base font-medium"
+                    >
+                      Delete Model
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                    <button
+                      onClick={(e) => handleLike(container.model_name, e)}
+                      className="flex items-center gap-1 text-gray-400 hover:text-white transition-colors text-sm"
+                    >
+                      <Heart
+                        className={`w-4 h-4 ${modelLikes[container.model_name]?.isLiked ? 'fill-red-500 text-red-500' : ''}`}
+                      />
+                      <span>{modelLikes[container.model_name]?.count || 0}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

@@ -1139,7 +1139,7 @@ const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, isStartFrame:
                         <div className="relative rounded-2xl overflow-hidden group h-full">
                           <div className="relative h-full">
                             <Image
-                              src="/image.png"
+                              src="flower.png"
                               alt="Flower field with a windmill in the distance"
                               className="h-[92.5%] w-full object-cover"
                               width={330}
@@ -1163,7 +1163,7 @@ const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, isStartFrame:
                         <div className="relative rounded-2xl overflow-hidden group h-full">
                           <div className="relative h-full">
                             <Image
-                              src="/image1.png"
+                              src="castle.png"
                               alt="Fantasy castle sitting on top of a floating island"
                               className="h-[92.5%] w-full object-cover"
                               width={330}
@@ -1187,7 +1187,7 @@ const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, isStartFrame:
                         <div className="relative rounded-2xl overflow-hidden group h-full">
                           <div className="relative h-full">
                             <Image
-                              src="/image2.png"
+                              src="library.png"
                               alt="Cozy library full of books, with an open..."
                               className="h-[92.5%] w-full object-cover"
                               width={330}
