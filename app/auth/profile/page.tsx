@@ -8,7 +8,6 @@ import toast from 'react-hot-toast';
 import SpotlightCard from '@/components/SpotLightCard';
 import { getSupabaseClient } from '../supabase';
 import { motion, useAnimation, useInView, AnimatePresence } from 'framer-motion';
-import DynamicBackground from './components/DynamicBackground';
 import { ArrowLeft } from 'lucide-react';
 
 
@@ -195,8 +194,6 @@ const ProfilePage: React.FC = () => {
 
   return (
     <div className="min-h-screen relative  bg-gradient-to-b from-gray-900 to-black">
-
-      <DynamicBackground />
 
 
       <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-black/40 to-black/10 z-1" />
