@@ -9,6 +9,9 @@ import { PaymentStatus } from '@/app/subscription/types';
 import { RazorpayService } from '@/app/subscription/services/razorpay';
 import { useUser } from '@/app/auth/useUser';
 
+// Exchange rate API URL
+const EXCHANGE_RATE_API = 'https://api.exchangerate-api.com/v4/latest/USD';
+
 interface RazorpayPaymentProps {
   onSuccess: (amount: number) => void;
   onError: (error: string) => void;
@@ -17,24 +20,42 @@ interface RazorpayPaymentProps {
 export const RazorpayPayment: React.FC<RazorpayPaymentProps> = ({ onSuccess, onError }): ReactNode => {
   const { user, loading } = useUser();
   const [status, setStatus] = useState<PaymentStatus>('idle');
+  const [exchangeRate, setExchangeRate] = useState<number>(0);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+  const formatCurrency = (amount: number, currency: string = 'USD') => {
+    return new Intl.NumberFormat(currency === 'INR' ? 'en-IN' : 'en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: currency,
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(amount);
   };
 
+  // Fetch exchange rate when component mounts
+  useEffect(() => {
+    const fetchExchangeRate = async () => {
+      try {
+        const response = await fetch(EXCHANGE_RATE_API);
+        const data = await response.json();
+        setExchangeRate(data.rates.INR);
+      } catch (error) {
+        console.error('Failed to fetch exchange rate:', error);
+        // Fallback exchange rate if API fails
+        setExchangeRate(83);
+      }
+    };
+
+    fetchExchangeRate();
+  }, []);
+
   const handlePayment = async () => {
     setStatus('processing');
     try {
-      // Display amount from window object (in dollars)
-      const displayAmount = window.selectedPlanAmount || 10;
+      // Get amount in USD
+      const amountUSD = window.selectedPlanAmount || 10;
       
-      // Actual amount to process (1 rupee)
-      const processAmount = 1;
+      // Convert USD to INR using current exchange rate
+      const amountINR = Math.ceil(amountUSD * exchangeRate);
       
       // First create an order on the server
       const response = await fetch('/subscription/api/razorpay', {
@@ -43,8 +64,8 @@ export const RazorpayPayment: React.FC<RazorpayPaymentProps> = ({ onSuccess, onE
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          amount: processAmount, // Process only 1 rupee
-          displayAmount: displayAmount // Send display amount for reference
+          amount: amountINR,
+          displayAmount: amountUSD // Original USD amount for reference
         }),
       });
 
@@ -59,17 +80,18 @@ export const RazorpayPayment: React.FC<RazorpayPaymentProps> = ({ onSuccess, onE
       const result = await RazorpayService.handlePayment(
         {
           orderId: orderData.orderId,
-          amount: processAmount, // Process only 1 rupee
-          currency: 'INR', // Use INR for the actual processing
+          amount: amountINR,
+          currency: 'INR',
           name: 'Neurolov Subscription',
-          description: `Payment of ${formatCurrency(displayAmount)} (Test Mode: ₹1)`,
+          description: `Payment of ${formatCurrency(amountUSD)} (${formatCurrency(amountINR, 'INR')})`,
           prefill: {
             name: user?.user_metadata?.full_name || '',
             email: user?.user_metadata?.email || '',
           },
           notes: {
-            displayAmount: displayAmount.toString(),
-            testMode: 'true'
+            displayAmountUSD: amountUSD.toString(),
+            amountINR: amountINR.toString(),
+            exchangeRate: exchangeRate.toString()
           }
         },
         orderData.key
