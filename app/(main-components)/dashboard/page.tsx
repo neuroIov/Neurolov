@@ -210,17 +210,17 @@ const welcome_user = [
         {/* AI Models */}
         <div className="group relative transform hover:-translate-y-1 transition-all duration-300">
           <div className="absolute -inset-0.5 bg-gradient-to-r from-[#40A6FF] to-[#2D63FF] rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
-          <Card className="relative bg-gradient-to-br from-black/40 to-black/60 backdrop-blur-xl border-white/5 hover:border-white/10 transition-all duration-300">
+          <Card className="relative bg-gradient-to-br from-black/40 to-black/60 backdrop-blur-xl border-white/5 hover:border-white/10 transition-all duration-300 flex flex-col h-full">
             <BetaTag />
             <CardHeader className="pb-4">
               <CardTitle className="text-2xl font-bold text-white">AI Models</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-gray-400 mb-6">
+            <CardContent className="flex-grow flex flex-col">
+              <p className="text-gray-400 mb-6 flex-grow">
                 Deploy and manage your AI models with ease. Access pre-trained models or upload your own.
               </p>
               <Button 
-                className={`${styles.dashboardBtn} relative overflow-hidden group/btn w-full h-[42px]`}
+                className={`${styles.dashboardBtn} relative overflow-hidden group/btn w-full h-[42px] mt-auto`}
                 onClick={() => router.push('/ai-models')}
               >
                 MANAGE MODELS
@@ -232,18 +232,18 @@ const welcome_user = [
         {/* AI Agents */}
         <div className="group relative transform hover:-translate-y-1 transition-all duration-300">
           <div className="absolute -inset-0.5 bg-gradient-to-r from-[#40A6FF] to-[#2D63FF] rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
-          <Card className="relative bg-gradient-to-br from-black/40 to-black/60 backdrop-blur-xl border-white/5 hover:border-white/10 transition-all duration-300">
+          <Card className="relative bg-gradient-to-br from-black/40 to-black/60 backdrop-blur-xl border-white/5 hover:border-white/10 transition-all duration-300 flex flex-col h-full">
             <BetaTag />
             <CardHeader className="pb-4">
               <CardTitle className="text-2xl font-bold text-white">AI Agents</CardTitle>
               <CardDescription className="text-gray-500">Coming in Version 2.0</CardDescription>
             </CardHeader>
-            <CardContent>
-              <p className="text-gray-400 mb-6">
+            <CardContent className="flex-grow flex flex-col">
+              <p className="text-gray-400 mb-6 flex-grow">
                 Deploy powerful AI agents for your blockchain needs. Automate and optimize.
               </p>
               <Button 
-                className={`${styles.dashboardBtn} relative overflow-hidden group/btn w-full h-[42px]`}
+                className={`${styles.dashboardBtn} relative overflow-hidden group/btn w-full h-[42px] mt-auto`}
                 onClick={() => !isDevUser ? handleGetNotified('AI Agents') : router.push('/ai-agents')}
               >
                 <span className="relative z-10 group-hover/btn:opacity-0 transition-opacity duration-300">
@@ -260,17 +260,17 @@ const welcome_user = [
         {/* GPU Marketplace */}
         <div className="group relative">
           <div className="absolute -inset-0.5 bg-gradient-to-r from-[#40A6FF] to-[#2D63FF] rounded-2xl blur opacity-20 group-hover:opacity-30 transition duration-500"></div>
-          <Card className="relative bg-gradient-to-br from-black/40 to-black/60 backdrop-blur-xl border-white/5 hover:border-white/10 transition-all duration-300">
+          <Card className="relative bg-gradient-to-br from-black/40 to-black/60 backdrop-blur-xl border-white/5 hover:border-white/10 transition-all duration-300 flex flex-col h-full">
             <BetaTag />
             <CardHeader className="pb-4">
               <CardTitle className="text-2xl font-bold text-white">GPU Marketplace</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-gray-400 mb-6">
+            <CardContent className="flex-grow flex flex-col">
+              <p className="text-gray-400 mb-6 flex-grow">
                 Rent or provide GPU computing power. Access high-performance GPUs on demand.
               </p>
               <Button 
-                className={`${styles.dashboardBtn} relative overflow-hidden group/btn w-full h-[42px]`}
+                className={`${styles.dashboardBtn} relative overflow-hidden group/btn w-full h-[42px] mt-auto`}
                 onClick={() => router.push('/gpu-marketplace')}
               >
                 EXPLORE GPUS
@@ -282,18 +282,18 @@ const welcome_user = [
         {/* Connect to Earn */}
         <div className="group relative transform hover:-translate-y-1 transition-all duration-300">
           <div className="absolute -inset-0.5 bg-gradient-to-r from-[#40A6FF] to-[#2D63FF] rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
-          <Card className="relative bg-gradient-to-br from-black/40 to-black/60 backdrop-blur-xl border-white/5 hover:border-white/10 transition-all duration-300">
+          <Card className="relative bg-gradient-to-br from-black/40 to-black/60 backdrop-blur-xl border-white/5 hover:border-white/10 transition-all duration-300 flex flex-col h-full">
             <BetaTag />
             <CardHeader className="pb-4">
               <CardTitle className="text-2xl font-bold text-white">Connect to Earn</CardTitle>
               <CardDescription className="text-gray-500">Coming in Version 3.0</CardDescription>
             </CardHeader>
-            <CardContent>
-              <p className="text-gray-400 mb-6">
+            <CardContent className="flex-grow flex flex-col">
+              <p className="text-gray-400 mb-6 flex-grow">
                 Share your compute resources and earn credits. Monitor your earnings in real-time.
               </p>
               <Button 
-                className={`${styles.dashboardBtn} relative overflow-hidden group/btn w-full h-[42px]`}
+                className={`${styles.dashboardBtn} relative overflow-hidden group/btn w-full h-[42px] mt-auto`}
                 onClick={() => !isDevUser ? handleGetNotified('Connect to Earn') : router.push('/connect-to-earn')}
               >
                 <span className="relative z-10 group-hover/btn:opacity-0 transition-opacity duration-300">
@@ -310,18 +310,18 @@ const welcome_user = [
         {/* NodeNet */}
         <div className="group relative transform hover:-translate-y-1 transition-all duration-300">
           <div className="absolute -inset-0.5 bg-gradient-to-r from-[#40A6FF] to-[#2D63FF] rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
-          <Card className="relative bg-gradient-to-br from-black/40 to-black/60 backdrop-blur-xl border-white/5 hover:border-white/10 transition-all duration-300">
+          <Card className="relative bg-gradient-to-br from-black/40 to-black/60 backdrop-blur-xl border-white/5 hover:border-white/10 transition-all duration-300 flex flex-col h-full">
             <BetaTag />
             <CardHeader className="pb-4">
               <CardTitle className="text-2xl font-bold text-white">NodeNet</CardTitle>
               <CardDescription className="text-gray-500">Coming in Version 2.0</CardDescription>
             </CardHeader>
-            <CardContent>
-              <p className="text-gray-400 mb-6">
+            <CardContent className="flex-grow flex flex-col">
+              <p className="text-gray-400 mb-6 flex-grow">
                 Decentralized compute network. Contribute and earn from the network.
               </p>
               <Button 
-                className={`${styles.dashboardBtn} relative overflow-hidden group/btn w-full h-[42px]`}
+                className={`${styles.dashboardBtn} relative overflow-hidden group/btn w-full h-[42px] mt-auto`}
                 onClick={() => !isDevUser ? handleGetNotified('NodeNet') : router.push('/dashboard/NodeNet')}
               >
                 <span className="relative z-10 group-hover/btn:opacity-0 transition-opacity duration-300">

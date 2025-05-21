@@ -155,7 +155,12 @@ function MainLayout({
   }
 
   return (
-    <div className="min-h-screen bg-black grid-background">
+    <div className="min-h-screen">
+    
+      <div className="app-background">
+        {/* <div className="grid-overlay"></div>
+        <div className="gradient-overlay"></div> */}
+      </div>
       {/* Header */}
       <header className="fixed top-0 z-[40] w-full border-b border-gray-800 bg-black/95">
         <div className="px-4 md:px-8 h-20 flex items-center justify-between relative">

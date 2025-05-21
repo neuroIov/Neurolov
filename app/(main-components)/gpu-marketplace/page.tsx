@@ -393,21 +393,9 @@ export default function Home() {
                 className="object-contain w-[80%] h-[80%] transition-all duration-500 group-hover:scale-105 group-hover:brightness-75"
                 priority
               />
-
-              {/* Mobile Join Waitlist Button */}
-              {!isGpuAvailable(gpu.id) && gpu.id.toLowerCase().startsWith('rtx') && (
-                <div className="block md:hidden mt-4">
-                  <Button
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-8"
-                    onClick={handleJoinWaitlist}
-                  >
-                    Join Waitlist
-                  </Button>
-                </div>
-              )}
             </div>
 
-            {/* Desktop Coming Soon Overlay */}
+            {/* Desktop Coming Soon Overlay - only visible on hover on desktop */}
             {!isGpuAvailable(gpu.id) && (
               <div className="hidden md:block absolute inset-0 z-20">
                 <ComingSoonOverlay
@@ -429,18 +417,32 @@ export default function Home() {
               </div>
             )}
 
-            {/* Price and Button Container */}
+            {/* Price and Button Container - Always visible on mobile, hover on desktop */}
             <div
-              className="absolute bottom-0 left-0 right-0 opacity-0 group-hover:opacity-100 transition-all duration-300"
-              onClick={() => handleGpuSelect(gpu)}
+              className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-black/60 md:bg-gradient-to-t md:from-black/90 md:to-transparent md:opacity-0 md:group-hover:opacity-100 transition-all duration-300 z-30"
+              onClick={(e) => {
+                if (isGpuAvailable(gpu.id)) {
+                  handleGpuSelect(gpu);
+                } else if (gpu.id.toLowerCase().startsWith('rtx')) {
+                  handleJoinWaitlist(e);
+                }
+              }}
             >
-              <div className="flex items-center justify-between px-4 pb-4">
+              <div className="flex items-center justify-between px-4 py-4">
                 <p className="text-[#40A6FF] font-medium">
-                  From ${gpu.price.usd}/hr
+                  {isGpuAvailable(gpu.id) ? `From $${gpu.price.usd}/hr` : ''}
                 </p>
-                <button className={styles.selectButton}>
-                  Buy Now
-                </button>
+                {isGpuAvailable(gpu.id) ? (
+                  <button className={styles.selectButton}>
+                    Buy Now
+                  </button>
+                ) : gpu.id.toLowerCase().startsWith('rtx') ? (
+                  <button className="md:hidden bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-full transition-colors">
+                    Join Waitlist
+                  </button>
+                ) : (
+                  <span className="text-sm font-medium text-gray-300 bg-gray-700/50 py-2 px-4 rounded-full">Coming Soon</span>
+                )}
               </div>
             </div>
           </div>

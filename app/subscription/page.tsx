@@ -116,32 +116,13 @@ const SubscriptionPage = () => {
   }, [user]);
 
   const formatCurrency = (amount: number, currency: string = 'USD') => {
-    return new Intl.NumberFormat(currency === 'INR' ? 'en-IN' : 'en-US', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency,
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(amount);
   };
-
-  const [exchangeRate, setExchangeRate] = useState<number>(0);
-
-  // Fetch exchange rate when component mounts
-  useEffect(() => {
-    const fetchExchangeRate = async () => {
-      try {
-        const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
-        const data = await response.json();
-        setExchangeRate(data.rates.INR);
-      } catch (error) {
-        console.error('Failed to fetch exchange rate:', error);
-        // Fallback exchange rate if API fails
-        setExchangeRate(83);
-      }
-    };
-
-    fetchExchangeRate();
-  }, []);
 
   // Update the user's plan in the database
   const updateUserPlan = async (plan: string) => {
@@ -223,7 +204,7 @@ const SubscriptionPage = () => {
           {subscriptionPlans.map((plan) => (
             <Card 
               key={plan.id} 
-              className={`flex flex-col ${plan.id === currentPlan ? 'border-2 border-green-500 shadow-lg' : plan.recommended ? 'border-2 border-blue-500 shadow-lg' : ''}`}
+              className={`flex flex-col h-full ${plan.id === currentPlan ? 'border-2 border-green-500 shadow-lg' : plan.recommended ? 'border-2 border-blue-500 shadow-lg' : ''}`}
             >
               <CardHeader>
                 {plan.recommended && (
@@ -239,26 +220,23 @@ const SubscriptionPage = () => {
                 <CardTitle>{plan.name}</CardTitle>
                 <CardDescription>{plan.description}</CardDescription>
               </CardHeader>
-              <CardContent className="flex-grow">
+              <CardContent className="flex flex-col flex-grow">
                 <div className="mb-6">
                   <p className="text-3xl font-bold">{formatCurrency(plan.price, plan.currency)}</p>
-                  <p className="text-lg text-gray-600 dark:text-gray-400">
-                    {exchangeRate ? `(${formatCurrency(Math.ceil(plan.price * exchangeRate), 'INR')})` : '(Loading INR price...)'}
-                  </p>
                   <p className="text-sm text-gray-500">per month</p>
                 </div>
-                <ul className="space-y-2">
+                <ul className="space-y-2 flex-grow">
                   {plan.features.map((feature, index) => (
                     <li key={index} className="flex items-start">
-                      <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <svg className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>{feature}</span>
+                      <span className="text-sm">{feature}</span>
                     </li>
                   ))}
                 </ul>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="mt-auto pt-4">
                 <Button 
                   onClick={() => handleSubscribe(plan)} 
                   className={`w-full ${plan.id === currentPlan ? 'bg-gray-500 hover:bg-gray-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
@@ -291,13 +269,11 @@ const SubscriptionPage = () => {
 
             <div className="mb-4">
               <p className="text-center text-gray-600 mb-4">
-                {selectedPlan && `You selected the ${selectedPlan} plan`}
+                {selectedPlan && `You selected the ${selectedPlan} plan for ${formatCurrency(paymentAmount)}`}
               </p>
               <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md mb-4 text-sm text-center">
-                <p className="font-medium text-blue-700 dark:text-blue-300">
-                  {formatCurrency(paymentAmount)} ({exchangeRate ? formatCurrency(Math.ceil(paymentAmount * exchangeRate), 'INR') : 'Loading...'})                  
-                </p>
-                <p className="text-blue-600 dark:text-blue-400">Real-time exchange rate: 1 USD = {exchangeRate ? `₹${exchangeRate.toFixed(2)}` : 'Loading...'}</p>
+                <p className="font-medium text-blue-700 dark:text-blue-300">Test Mode Active</p>
+                <p className="text-blue-600 dark:text-blue-400">You will only be charged ₹1 for this transaction</p>
               </div>
               <div className="border-t border-b py-4 my-4">
                 <RazorpayPayment 
