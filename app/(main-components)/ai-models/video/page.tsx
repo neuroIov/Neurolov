@@ -22,6 +22,7 @@ import { Settings2 } from "lucide-react";
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useUser } from '@/app/auth/useUser';
 import { getSupabaseClient } from "@/app/auth/supabase";
+import UpgradePlanModal from '@/components/modals/UpgradePlanModal';
 
 interface GenerationOptions {
   model_id: string;
@@ -110,7 +111,8 @@ export default function VideoGeneratorPage() {
   const [error, setError] = useState<string | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [loadingToastId, setLoadingToastId] = useState<string>();
-  const [plan, setPlan] = useState("free")
+  const [plan, setPlan] = useState("free");
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchPlan = async () => {
@@ -147,7 +149,7 @@ export default function VideoGeneratorPage() {
   // Handle text-to-video generation with infinite polling every 5 seconds until success
   const handleTextGenerate = async () => {
     if (plan === 'free') {
-      toast.error('Please upgrade to a paid plan to generate Videos.');
+      setIsUpgradeModalOpen(true);
       return;
     }
     if (!textPrompt.trim()) {
@@ -314,7 +316,7 @@ export default function VideoGeneratorPage() {
   // Handle image-to-video generation with similar infinite polling logic
   const handleImageGenerate = async () => {
     if (plan === 'free') {
-      toast.error('Please upgrade to a paid plan to generate Videos.');
+      setIsUpgradeModalOpen(true);
       return;
     }
     if (!startImage) {
@@ -523,6 +525,13 @@ const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, isStartFrame:
 
   return (
     <div className="fixed inset-0 w-full left-0 top-[8.5%] z-[40] mt-6 md:mt-0 overflow-hidden bg-[#2c2c2c]">
+      {/* Upgrade Plan Modal */}
+      <UpgradePlanModal
+        isOpen={isUpgradeModalOpen}
+        onClose={() => setIsUpgradeModalOpen(false)}
+        modelName={mode === "text-to-video" ? "Text to Video" : "Image to Video"}
+      />
+      
       <div className="h-screen text-gray-300 flex flex-col">
         {/* Header with Back Button and Mode Selector */}
         <div className="px-4 sm:px-6 md:px-12 lg:px-16 xl:px-20 py-4 flex justify-between items-center">

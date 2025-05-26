@@ -196,11 +196,11 @@ const welcome_user = [
               <div className="transform translate-y-[-100%] group-hover:translate-y-0 transition-transform duration-300 ease-out">
                 <Button
                   className="bg-gradient-to-r from-[#40A6FF] to-[#2D63FF] hover:from-[#2D63FF] hover:to-[#40A6FF] text-white font-medium px-6 py-2.5 rounded-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-[#40A6FF]/20"
-                  onClick={() => router.push('/billing')}
+                  onClick={() => router.push('/subscription')}
                 >
                   Buy Credits
                 </Button>
-              </div>
+              </div>    
             </div>
           </div>
         </div>
