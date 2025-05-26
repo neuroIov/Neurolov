@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getUserFromRequest } from '@/lib/auth';
+import { checkAndUpdateUsage } from '@/lib/usageLimiter';
 
 // Helper function to ensure we always return JSON
 const errorResponse = (message: string, status: number = 500, details: any = null) => {
@@ -19,7 +21,24 @@ const errorResponse = (message: string, status: number = 500, details: any = nul
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
+    const user = await getUserFromRequest();
+
+if (!user) {
+  return new NextResponse(
+    JSON.stringify({ error: 'Unauthorized. Please log in.' }),
+    { status: 401, headers: { 'Content-Type': 'application/json' } }
+  );
+}
+
+const usage = await checkAndUpdateUsage(user.id, 'image');
+
+if (!usage.allowed) {
+  return new NextResponse(
+    JSON.stringify({ error: `Daily image generation limit reached (${usage.limit}/day).` }),
+    { status: 429, headers: { 'Content-Type': 'application/json' } }
+  );
+}
+
     // Get API keys from environment variables
     const modelslabApiKey = process.env.NEXT_PUBLIC_MODELSLAB_API_KEY;
     const stabilityApiKey = process.env.STABILITY_API_KEY;

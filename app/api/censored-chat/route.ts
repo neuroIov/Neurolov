@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { getUserFromRequest } from '@/lib/auth';
+import { checkAndUpdateUsage } from '@/lib/usageLimiter';
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -25,6 +27,23 @@ const errorResponse = (message: string, status: number = 500, details: any = nul
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+const user = await getUserFromRequest();
+
+if (!user) {
+  return new NextResponse(
+    JSON.stringify({ error: 'Unauthorized. Please log in.' }),
+    { status: 401, headers: { 'Content-Type': 'application/json' } }
+  );
+}
+
+const usage = await checkAndUpdateUsage(user.id, 'chat');
+
+if (!usage.allowed) {
+  return new NextResponse(
+    JSON.stringify({ error: `Daily chat limit reached (${usage.limit}/day).` }),
+    { status: 429, headers: { 'Content-Type': 'application/json' } }
+  );
+}
 
     if (!process.env.OPENAI_API_KEY) {
       console.error('OpenAI API key not found in environment variables');
