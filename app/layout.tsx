@@ -43,7 +43,7 @@ const navigation: NavigationItem[] = [
   { name: 'Compute', href: '/gpu-marketplace', icon: Cpu, },
   { name: 'AI Models', href: '/ai-models', icon: Brain, isNew: true },
   { name: 'AI Agents', href: '#', icon: Sparkles, isLocked: true, disabled: true },
-  { name: 'NeuroSwarm', href: '/neuroswarm', icon: Network },
+  { name: 'NeuroSwarm', href: '#', icon: Network, isLocked: true, disabled: true },
   { name: 'Subscription', href: '/subscription', icon: Boxes, isLocked: false, disabled: false },
   { name: 'Earnings', href: '/earnings', icon: Coins, isLocked: true, disabled: true },
   { name: 'Community', href: '/community', icon: Users, isLocked: true, disabled: true },
