@@ -43,7 +43,7 @@ const navigation: NavigationItem[] = [
   { name: 'Compute', href: '/gpu-marketplace', icon: Cpu, },
   { name: 'AI Models', href: '/ai-models', icon: Brain, isNew: true },
   { name: 'AI Agents', href: '#', icon: Sparkles, isLocked: true, disabled: true },
-  { name: 'NeuroSwarm', href: '#', icon: Network, isLocked: true, disabled: true },
+  { name: 'NeuroSwarm', href: '/neuroswarm', icon: Network, isLocked: false, disabled: false, isNew: true },
   { name: 'Subscription', href: '/subscription', icon: Boxes, isLocked: false, disabled: false },
   { name: 'Earnings', href: '/earnings', icon: Coins, isLocked: true, disabled: true },
   { name: 'Community', href: '/community', icon: Users, isLocked: true, disabled: true },
@@ -270,45 +270,7 @@ function MainLayout({
                       <div className="flex items-center space-x-3">
                         <Icon className="h-5 w-5" />
                         <div className="relative">
-                          {item.name === 'NeuroSwarm' ? (
-                            <>
-                              <motion.span
-                                key="coming-soon"
-                                initial={{ opacity: 0 }}
-                                animate={{ 
-                                  opacity: [0, 0, 1, 1, 0],
-                                }}
-                                transition={{
-                                  duration: 4,
-                                  times: [0, 0.625, 0.75, 0.875, 1],
-                                  repeat: Infinity,
-                                  ease: ["easeInOut", "easeInOut", "easeInOut", "easeInOut"]
-                                }}
-                                className="absolute left-0 right-0"
-                              >
-                                <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full text-white bg-[#06115D]">
-                                  COMING SOON
-                                </span>
-                              </motion.span>
-                              <motion.span
-                                key="item-name"
-                                initial={{ opacity: 1 }}
-                                animate={{ 
-                                  opacity: [1, 1, 0, 0, 1],
-                                }}
-                                transition={{ 
-                                  duration: 4,
-                                  times: [0, 0.625, 0.75, 0.875, 1],
-                                  repeat: Infinity,
-                                  ease: ["easeInOut", "easeInOut", "easeInOut", "easeInOut"]
-                                }}
-                              >
-                                {item.name}
-                              </motion.span>
-                            </>
-                          ) : (
-                            <span>{item.name}</span>
-                          )}
+                          <span>{item.name}</span>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
