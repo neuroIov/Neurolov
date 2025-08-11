@@ -48,7 +48,7 @@ const NeuroSwarmPage = () => {
         
         if (profileData?.plan) {
           setUserPlan(profileData.plan);
-          console.log(User plan found: ${profileData.plan});
+          console.log(`User plan found: ${profileData.plan}`);
         } else {
           console.log('No user plan found, using default: free');
           if (profileError) console.error('Error fetching profile:', profileError);
@@ -93,7 +93,7 @@ const NeuroSwarmPage = () => {
     
     setLoading(true);
     const normalizedEmail = normalizeEmail(email);
-    console.log(Checking if email exists in Swarm: ${normalizedEmail});
+    console.log(`Checking if email exists in Swarm: ${normalizedEmail}`);
     try {
       // Check if email exists in Swarm's user_profiles
       const { data, error } = await swarmSupabase
@@ -152,7 +152,7 @@ const NeuroSwarmPage = () => {
         throw new Error("Couldn't find Swarm account with this email");
       }
       
-      console.log(Found Swarm user ID: ${swarmUser.id} for email: ${emailToCheck});
+      console.log(`Found Swarm user ID: ${swarmUser.id} for email: ${emailToCheck}`);
       
       // Link accounts in unified_users table
       const { error } = await supabase.from('unified_users').insert({
@@ -202,10 +202,10 @@ const NeuroSwarmPage = () => {
       // Check if account already exists
       const exists = await checkExistingSwarmAccount(emailToUse);
       if (exists) {
-        throw new Error(An account with email ${emailToUse} already exists in Swarm);
+        throw new Error(`An account with email ${emailToUse} already exists in Swarm`);
       }
       
-      console.log(Creating new Swarm account with email: ${emailToUse});
+      console.log(`Creating new Swarm account with email: ${emailToUse}`);
       
       // 1. Create Swarm auth account
       const { data, error } = await swarmSupabase.auth.signUp({
@@ -221,7 +221,7 @@ const NeuroSwarmPage = () => {
       if (error) throw error;
       if (!data.user) throw new Error("No user data returned");
       
-      console.log(Created Swarm auth account with ID: ${data.user.id});
+      console.log(`Created Swarm auth account with ID: ${data.user.id}`);
       
       // 2. Create user profile in Swarm
       const { data: newUser, error: insertError } = await swarmSupabase
@@ -232,7 +232,7 @@ const NeuroSwarmPage = () => {
       
       if (insertError) throw insertError;
       
-      console.log(Created Swarm user profile for email: ${emailToUse});
+      console.log(`Created Swarm user profile for email: ${emailToUse}`);
       
       // 3. Link accounts in unified_users table
       const { error: linkError } = await supabase.from('unified_users').insert({
