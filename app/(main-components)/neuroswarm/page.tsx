@@ -288,7 +288,7 @@ const NeuroSwarmPage = () => {
         ) : (
           <>
             <p className="mb-4">Your account is connected to Swarm.</p>
-            <Button onClick={() => window.location.href = 'http://localhost:8080'}>Switch to NeuroSwarm</Button>
+            <Button onClick={() => window.location.href = 'https://swarm.neurolov.ai/'}>Switch to NeuroSwarm</Button>
           </>
         )}
       </div>
