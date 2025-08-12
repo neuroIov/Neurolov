@@ -6,11 +6,12 @@ import Image from 'next/image';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { PaymentStatus } from './types';
 import './styles.css';
 import { useUser } from '../auth/useUser';
 import { getSupabaseClient } from '../auth/supabase';
+import { ManualCryptoPayment } from './components/ManualCryptoPayment';
 
 // Lazy load the RazorpayPayment component
 const RazorpayPayment = dynamic(() => import('./components/RazorpayPayment').then(mod => mod.RazorpayPayment), {
@@ -41,6 +42,7 @@ const SubscriptionPage = () => {
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [paymentAmount, setPaymentAmount] = useState<number>(0);
   const [isSubscribeModalOpen, setIsSubscribeModalOpen] = useState(false);
+  const [showCryptoPayment, setShowCryptoPayment] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<string>('free');
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
@@ -199,10 +201,59 @@ const SubscriptionPage = () => {
 
   const closeSubscribeModal = () => {
     setIsSubscribeModalOpen(false);
+    setShowCryptoPayment(false);
     setPaymentAmount(0);
     setPaymentStatus('idle');
     setPaymentError(null);
     setSelectedPlan(null);
+  };
+
+  const handleCryptoPaymentSuccess = async (paymentDetails: {
+    cryptoType: string;
+    amount: number;
+    referenceId: string;
+    address: string;
+  }) => {
+    try {
+      // In a real app, you would send this to your backend for verification
+      // For now, we'll just show a success message and close the modal
+      toast.success('Payment submitted for verification. We will activate your subscription once we confirm the transaction.', {
+        duration: 5000,
+      });
+      
+      // Here you would typically send the payment details to your backend
+      // for verification. The backend would then verify the transaction on the
+      // blockchain and update the user's subscription status accordingly.
+      // 
+      // Example API call (commented out):
+      // const response = await fetch('/api/verify-crypto-payment', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({
+      //     txHash: paymentDetails.referenceId,
+      //     cryptoType: paymentDetails.cryptoType,
+      //     planId: selectedPlan,
+      //     amount: paymentDetails.amount,
+      //     address: paymentDetails.address,
+      //     userId: user?.id,
+      //   }),
+      // });
+      // 
+      // const result = await response.json();
+      // if (!result.success) {
+      //   throw new Error(result.error || 'Payment verification failed');
+      // }
+      
+      // For demo purposes, we'll just show a success message
+      // In a real app, you would wait for the backend to verify the payment
+      // before updating the user's subscription
+      
+      return true;
+    } catch (error: any) {
+      console.error('Error processing crypto payment:', error);
+      toast.error(error?.message || 'Failed to process payment. Please contact support.');
+      return false;
+    }
   };
 
   useEffect(() => {
@@ -299,16 +350,63 @@ const SubscriptionPage = () => {
                 </p>
                 <p className="text-blue-600 dark:text-blue-400">Real-time exchange rate: 1 USD = {exchangeRate ? `₹${exchangeRate.toFixed(2)}` : 'Loading...'}</p>
               </div>
-              <div className="border-t border-b py-4 my-4">
+              <div className="border-t border-b py-4 my-4 space-y-4">
                 <RazorpayPayment 
                   onSuccess={handleRazorpaySuccess}
                   onError={handleRazorpayError}
                 />
+                
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white dark:bg-zinc-900 text-gray-500 dark:text-gray-400">
+                      Or pay with
+                    </span>
+                  </div>
+                </div>
+
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => setShowCryptoPayment(true)}
+                >
+                  Pay with Crypto
+                </Button>
               </div>
               {paymentError && (
                 <div className="text-red-500 text-center mt-4">{paymentError}</div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Crypto Payment Modal */}
+      {isSubscribeModalOpen && showCryptoPayment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg w-full max-w-md p-6 m-4">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-semibold">
+                {selectedPlan && `Pay for ${selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)} Plan`}
+              </h3>
+              <button
+                onClick={() => setShowCryptoPayment(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <ManualCryptoPayment 
+              amount={paymentAmount}
+              onAmountChange={setPaymentAmount}
+              onPaymentSent={handleCryptoPaymentSuccess}
+              onCancel={() => setShowCryptoPayment(false)}
+            />
           </div>
         </div>
       )}
