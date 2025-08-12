@@ -9,8 +9,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Checkbox } from '@/components/ui/checkbox';
 import React, { useEffect, useState } from 'react';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { useRouter } from 'next/navigation';
 
 const NeuroSwarmPage = () => {
+  const router = useRouter();
   const supabase = getSupabaseClient();
   const swarmSupabase: SupabaseClient = getSwarmSupabase();
   const [user, setUser] = useState<any>(null);
@@ -20,18 +22,22 @@ const NeuroSwarmPage = () => {
   const [hasSwarmAccount, setHasSwarmAccount] = useState<boolean | null>(null);
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [useDifferentEmail, setUseDifferentEmail] = useState(false);
   const [swarmEmail, setSwarmEmail] = useState('');
   const [existingSwarmEmail, setExistingSwarmEmail] = useState('');
+
+  const normalizeEmail = (email: string): string => {
+    return (email ?? '').trim();
+  };
 
   useEffect(() => {
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUser(user);
-        setSwarmEmail(user.email || '');
+        setSwarmEmail(normalizeEmail(user.email || ''));
 
         // Get user's plan from profiles table
         const { data: profileData, error: profileError } = await supabase
@@ -49,10 +55,11 @@ const NeuroSwarmPage = () => {
         }
 
         // Check if user is already linked in unified_users table
+        const normalizedUserEmail = normalizeEmail(user.email || '');
         const { data, error } = await supabase
           .from('unified_users')
           .select('*')
-          .eq('app_user_email', user.email)
+          .eq('app_user_email', normalizedUserEmail)
           .single();
 
         setLinked(!!data);
@@ -63,9 +70,11 @@ const NeuroSwarmPage = () => {
           if (error) console.error('Error checking link status:', error);
         }
       }
+      setLoading(false);
     };
     init();
   }, []);
+
 
   const handleConnect = () => {
     // Reset all states when opening the dialog
@@ -83,22 +92,23 @@ const NeuroSwarmPage = () => {
     if (!email) return;
     
     setLoading(true);
-    console.log(`Checking if email exists in Swarm: ${email}`);
+    const normalizedEmail = normalizeEmail(email);
+    console.log(`Checking if email exists in Swarm: ${normalizedEmail}`);
     try {
       // Check if email exists in Swarm's user_profiles
       const { data, error } = await swarmSupabase
         .from('user_profiles')
         .select('*')
-        .eq('email', email)
+        .eq('email', normalizedEmail)
         .single();
       
       const exists = !!data;
       setHasSwarmAccount(exists);
       
       if (exists) {
-        console.log('Swarm account found for email:', email);
+        console.log('Swarm account found for email:', normalizedEmail);
       } else {
-        console.log('No Swarm account found for email:', email);
+        console.log('No Swarm account found for email:', normalizedEmail);
         if (error) console.error('Error checking Swarm account:', error);
       }
       
@@ -118,9 +128,10 @@ const NeuroSwarmPage = () => {
     setError('');
     
     try {
-      const emailToCheck = useDifferentEmail ? existingSwarmEmail : user.email;
+      const emailToCheckRaw = useDifferentEmail ? existingSwarmEmail : user?.email;
+      const emailToCheck = normalizeEmail(emailToCheckRaw || '');
       
-      if (useDifferentEmail && !existingSwarmEmail) {
+      if (useDifferentEmail && !existingSwarmEmail.trim()) {
         throw new Error("Please enter your existing Swarm email");
       }
       
@@ -146,7 +157,7 @@ const NeuroSwarmPage = () => {
       // Link accounts in unified_users table
       const { error } = await supabase.from('unified_users').insert({
         app_user_id: user.id,
-        app_user_email: user.email,
+        app_user_email: normalizeEmail(user.email || ''),
         swarm_user_email: emailToCheck,
         swarm_user_id: swarmUser.id,
         plan: userPlan
@@ -181,11 +192,12 @@ const NeuroSwarmPage = () => {
         throw new Error("Username and password are required");
       }
       
-      if (useDifferentEmail && !swarmEmail) {
+      if (useDifferentEmail && !swarmEmail.trim()) {
         throw new Error("Please enter an email for your Swarm account");
       }
       
-      const emailToUse = useDifferentEmail ? swarmEmail : user.email;
+      const emailToUseRaw = useDifferentEmail ? swarmEmail : user?.email;
+      const emailToUse = normalizeEmail(emailToUseRaw || '');
       
       // Check if account already exists
       const exists = await checkExistingSwarmAccount(emailToUse);
@@ -225,7 +237,7 @@ const NeuroSwarmPage = () => {
       // 3. Link accounts in unified_users table
       const { error: linkError } = await supabase.from('unified_users').insert({
         app_user_id: user.id,
-        app_user_email: user.email,
+        app_user_email: normalizeEmail(user.email || ''),
         swarm_user_email: emailToUse,
         swarm_user_id: data.user.id,
         plan: userPlan
@@ -245,6 +257,21 @@ const NeuroSwarmPage = () => {
     }
   };
 
+  // Redirect if user is not logged in
+  if (!loading && !user) {
+    router.push('/');
+    return null;
+  }
+
+  // Show loading spinner while checking authentication
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold mb-6">NeuroSwarm</h1>
@@ -261,7 +288,7 @@ const NeuroSwarmPage = () => {
         ) : (
           <>
             <p className="mb-4">Your account is connected to Swarm.</p>
-            <Button onClick={() => window.location.href = 'http://localhost:8080'}>Switch to NeuroSwarm</Button>
+            <Button onClick={() => window.location.href = 'https://swarm.neurolov.ai/'}>Switch to NeuroSwarm</Button>
           </>
         )}
       </div>
