@@ -78,7 +78,24 @@ interface AIModel {
   name: string;
   description: string;
   type: string;
+  tags: string[];
+  iconBg: string;
   features?: string[];
+  defaultConfig: {
+    containerImage: string;
+    exposedPorts: number[];
+    minDisk: number;
+    minVram: number;
+  };
+}
+
+// Add new interface for model ETA data
+interface ModelETA {
+  estimatedTime: string;
+  isGenerating: boolean;
+  progress: number;
+  status: 'idle' | 'loading' | 'almost-done' | 'eta-increased' | 'complete';
+  lastUpdate: number;
 }
 
 const getModelIcon = (type: string) => {
@@ -148,6 +165,52 @@ export default function AIModelsPage() {
 
   const { user } = useUser();
   const isDev = user?.email && DEV_EMAILS.includes(user.email);
+
+  // Add model ETA state
+  const [modelETAs, setModelETAs] = useState<Record<string, ModelETA>>({
+    'neurolov-image': {
+      estimatedTime: '30-60 seconds',
+      isGenerating: false,
+      progress: 0,
+      status: 'idle',
+      lastUpdate: Date.now()
+    },
+    'freedom-ai': {
+      estimatedTime: '5-15 seconds',
+      isGenerating: false,
+      progress: 0,
+      status: 'idle',
+      lastUpdate: Date.now()
+    },
+    'text-to-3d': {
+      estimatedTime: '2-5 minutes',
+      isGenerating: false,
+      progress: 0,
+      status: 'idle',
+      lastUpdate: Date.now()
+    },
+    'video': {
+      estimatedTime: '3-8 minutes',
+      isGenerating: false,
+      progress: 0,
+      status: 'idle',
+      lastUpdate: Date.now()
+    },
+    'music-ai': {
+      estimatedTime: '1-3 minutes',
+      isGenerating: false,
+      progress: 0,
+      status: 'idle',
+      lastUpdate: Date.now()
+    },
+    'deepfake': {
+      estimatedTime: '2-4 minutes',
+      isGenerating: false,
+      progress: 0,
+      status: 'idle',
+      lastUpdate: Date.now()
+    }
+  });
 
   // console.log('User:', user?.email);
   // console.log('Is Dev:', isDev);
@@ -313,6 +376,60 @@ export default function AIModelsPage() {
     return () => clearInterval(interval);
   }, []);
 
+  // Simulate ETA updates and progress for demonstration
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setModelETAs(prev => {
+        const newETAs = { ...prev };
+        
+        Object.keys(newETAs).forEach(modelId => {
+          const eta = newETAs[modelId];
+          if (eta.isGenerating) {
+            // Simulate progress increase
+            const newProgress = Math.min(eta.progress + Math.random() * 10, 95);
+            
+            // Simulate ETA increase after 30 seconds of loading
+            const timeSinceUpdate = Date.now() - eta.lastUpdate;
+            if (timeSinceUpdate > 30000 && eta.status === 'loading' && Math.random() > 0.7) {
+              simulateETAIncrease(modelId);
+            }
+            
+            // Simulate "almost done" state when progress > 80%
+            if (newProgress > 80 && eta.status === 'loading') {
+              eta.status = 'almost-done';
+            }
+            
+            eta.progress = newProgress;
+            eta.lastUpdate = Date.now();
+          }
+        });
+        
+        return newETAs;
+      });
+    }, 2000); // Update every 2 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Reset ETA states when component unmounts
+  useEffect(() => {
+    return () => {
+      // Reset all ETA states to idle when component unmounts
+      setModelETAs(prev => {
+        const resetETAs = { ...prev };
+        Object.keys(resetETAs).forEach(modelId => {
+          resetETAs[modelId] = {
+            ...resetETAs[modelId],
+            isGenerating: false,
+            status: 'idle',
+            progress: 0
+          };
+        });
+        return resetETAs;
+      });
+    };
+  }, []);
+
   // Combine base likes and increments for display
   const modelLikes = useMemo(() => {
     const combined: Record<string, { count: number, isLiked: boolean }> = {};
@@ -379,35 +496,123 @@ export default function AIModelsPage() {
     }
   };
 
+  // Function to update model ETA status
+  const updateModelETA = (modelId: string, updates: Partial<ModelETA>) => {
+    setModelETAs(prev => ({
+      ...prev,
+      [modelId]: {
+        ...prev[modelId],
+        ...updates,
+        lastUpdate: Date.now()
+      }
+    }));
+  };
+
+  // Function to simulate ETA increase
+  const simulateETAIncrease = (modelId: string) => {
+    const currentETA = modelETAs[modelId];
+    if (currentETA && currentETA.status === 'loading') {
+      updateModelETA(modelId, {
+        status: 'eta-increased',
+        estimatedTime: getIncreasedETA(currentETA.estimatedTime)
+      });
+      
+      // Show toast notification
+      toast.info(`ETA increased for ${models.find(m => m.id === modelId)?.name || modelId}. Please wait a bit longer.`);
+    }
+  };
+
+  // Function to get increased ETA
+  const getIncreasedETA = (currentETA: string): string => {
+    if (currentETA.includes('seconds')) {
+      const seconds = parseInt(currentETA.match(/\d+/)?.[0] || '30');
+      return `${Math.min(seconds * 2, 300)}-${Math.min(seconds * 3, 600)} seconds`;
+    } else if (currentETA.includes('minutes')) {
+      const minutes = parseInt(currentETA.match(/\d+/)?.[0] || '2');
+      return `${Math.min(minutes * 1.5, 15)}-${Math.min(minutes * 2, 30)} minutes`;
+    }
+    return currentETA;
+  };
+
   const handleAddToBag = async (model: AIModel) => {
     try {
+      // Start loading state for the model
+      updateModelETA(model.id, {
+        isGenerating: true,
+        status: 'loading',
+        progress: 0
+      });
+
       // Special handling for specific models
       if (model.id === 'neurolov-image') {
+        // Reset ETA after a short delay to simulate loading
+        setTimeout(() => {
+          updateModelETA(model.id, {
+            isGenerating: false,
+            status: 'complete',
+            progress: 100
+          });
+        }, 2000);
         router.push('/neurolov-image');
         return;
       }
 
       if (model.id === 'music-ai') {
+        setTimeout(() => {
+          updateModelETA(model.id, {
+            isGenerating: false,
+            status: 'complete',
+            progress: 100
+          });
+        }, 2000);
         router.push('/ai-models/music-ai');
         return;
       }
 
       if (model.id === 'freedom-ai') {
+        setTimeout(() => {
+          updateModelETA(model.id, {
+            isGenerating: false,
+            status: 'complete',
+            progress: 100
+          });
+        }, 2000);
         router.push('/ai-models/freedom-ai');
         return;
       }
 
       if (model.id === 'text-to-3d') {
+        setTimeout(() => {
+          updateModelETA(model.id, {
+            isGenerating: false,
+            status: 'complete',
+            progress: 100
+          });
+        }, 2000);
         router.push('/ai-models/text-to-3d');
         return;
       }
 
       if (model.id === 'video') {
+        setTimeout(() => {
+          updateModelETA(model.id, {
+            isGenerating: false,
+            status: 'complete',
+            progress: 100
+          });
+        }, 2000);
         router.push('/ai-models/video');
         return;
       }
 
       if (model.id === 'deepfake') {
+        setTimeout(() => {
+          updateModelETA(model.id, {
+            isGenerating: false,
+            status: 'complete',
+            progress: 100
+          });
+        }, 2000);
         router.push('/ai-models/deepfake');
         return;
       }
@@ -428,6 +633,13 @@ export default function AIModelsPage() {
     } catch (error) {
       console.error('Error adding model to bag:', error);
       toast.error('Failed to add model to bag. Please try again.');
+      
+      // Reset loading state on error
+      updateModelETA(model.id, {
+        isGenerating: false,
+        status: 'idle',
+        progress: 0
+      });
     }
   };
 
@@ -553,6 +765,45 @@ export default function AIModelsPage() {
                   {model.description}
                 </p>
 
+                {/* ETA Information */}
+                <div className="mb-4 p-3 bg-gray-800/50 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-gray-400 font-medium">Estimated Time</span>
+                    <span className="text-xs text-blue-400 font-medium">
+                      {modelETAs[model.id]?.estimatedTime || 'Calculating...'}
+                    </span>
+                  </div>
+                  
+                  {/* Loading States */}
+                  {modelETAs[model.id]?.isGenerating && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="w-3 h-3 animate-spin text-blue-400" />
+                        <span className="text-xs text-gray-300">
+                          {modelETAs[model.id]?.status === 'almost-done' && 'Almost done...'}
+                          {modelETAs[model.id]?.status === 'eta-increased' && 'ETA increased, please wait...'}
+                          {modelETAs[model.id]?.status === 'loading' && 'Processing...'}
+                        </span>
+                      </div>
+                      
+                      {/* Progress Bar */}
+                      <div className="w-full bg-gray-700 rounded-full h-1">
+                        <div 
+                          className="bg-gradient-to-r from-blue-500 to-cyan-500 h-1 rounded-full transition-all duration-300"
+                          style={{ width: `${modelETAs[model.id]?.progress || 0}%` }}
+                        />
+                      </div>
+                      
+                      {/* ETA Increase Notification */}
+                      {modelETAs[model.id]?.status === 'eta-increased' && (
+                        <div className="text-xs text-amber-400 bg-amber-900/20 p-2 rounded">
+                          ⚠️ ETA has increased. Please wait a bit longer.
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 {/* Features List */}
                 <ul className="space-y-2 flex-grow">
                   {model.features?.map((feature, index) => (
@@ -567,10 +818,20 @@ export default function AIModelsPage() {
                 <div className="flex items-center justify-between pt-4 mt-2 border-t border-gray-800">
                   <Button
                     onClick={() => handleAddToBag(model)}
-                    className="inline-flex items-center gap-1 bg-[#0066FF] hover:bg-[#0052CC] text-white px-4 py-2 rounded-full text-sm transition-colors"
+                    disabled={modelETAs[model.id]?.isGenerating}
+                    className="inline-flex items-center gap-1 bg-[#0066FF] hover:bg-[#0052CC] text-white px-4 py-2 rounded-full text-sm transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
                   >
-                    Launch App
-                    <ArrowRight className="w-4 h-4" />
+                    {modelETAs[model.id]?.isGenerating ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Loading...
+                      </>
+                    ) : (
+                      <>
+                        Launch App
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
                   </Button>
                   <button
                     onClick={(e) => handleLike(model.id, e)}
@@ -618,6 +879,21 @@ export default function AIModelsPage() {
                   {container.model_description}
                 </p>
 
+                {/* ETA Information for Deployed Models */}
+                <div className="mb-4 p-3 bg-gray-800/50 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-gray-400 font-medium">Status</span>
+                    <span className="text-xs text-green-400 font-medium">
+                      Deployed & Ready
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-xs text-gray-300">Model is active and ready to use</span>
+                  </div>
+                </div>
+
                 {/* Features List */}
                 <ul className="space-y-2 flex-grow">
                   {container.model_features.map((feature, index) => (
@@ -632,10 +908,20 @@ export default function AIModelsPage() {
                 <div className="flex items-center justify-between pt-4 mt-2 border-t border-gray-800">
                   <Button
                     onClick={() => handleDeleteModel(container)}
-                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full flex items-center gap-1 text-sm"
+                    disabled={isDeleting === container.container_address}
+                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full flex items-center gap-1 text-sm disabled:bg-gray-600 disabled:cursor-not-allowed"
                   >
-                    Delete Model
-                    <Trash2 className="h-4 w-4" />
+                    {isDeleting === container.container_address ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      <>
+                        Delete Model
+                        <Trash2 className="h-4 w-4" />
+                      </>
+                    )}
                   </Button>
                   <button
                     onClick={(e) => handleLike(container.model_name, e)}
