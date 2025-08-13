@@ -9,7 +9,8 @@ import {
   MessageSquare,
   Plus,
   RefreshCw,
-  Trash2
+  Trash2,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -112,6 +113,11 @@ export default function FreedomAiPage() {
   const [hoveredMessageIndex, setHoveredMessageIndex] = useState<number | null>(null);
   // Tracks if a sample prompt was used.
   const [usingSamplePrompt, setUsingSamplePrompt] = useState(false);
+  
+  // ETA and loading states
+  const [eta, setEta] = useState('5-15 seconds');
+  const [etaStatus, setEtaStatus] = useState<'idle' | 'loading' | 'almost-done' | 'eta-increased'>('idle');
+  const [etaProgress, setEtaProgress] = useState(0);
 
   // Conversation management states.
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -223,7 +229,7 @@ export default function FreedomAiPage() {
           content: msg.content,
           created_at: msg.created_at,
         }));
-        const hasSystemMessage = formattedMessages.some(msg => msg.role === 'system');
+        const hasSystemMessage = formattedMessages.some((msg: { role: string }) => msg.role === 'system');
         if (!hasSystemMessage) {
           formattedMessages.unshift(isCensored ? censoredSystemMessage : uncensoredSystemMessage);
         }
@@ -410,6 +416,10 @@ export default function FreedomAiPage() {
     }
 
     setIsGenerating(true);
+    setEtaStatus('loading');
+    setEtaProgress(0);
+    setEta('5-15 seconds');
+    
     const userMessage: Message = { role: 'user', content: input.trim() };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
@@ -418,6 +428,8 @@ export default function FreedomAiPage() {
 
     let currentConvId: string | null = currentConversationId;
     const startTime = Date.now();
+    let progressInterval: NodeJS.Timeout | undefined;
+    let etaIncreaseTimeout: NodeJS.Timeout | undefined;
 
     try {
       if (!currentConvId) {
@@ -436,6 +448,26 @@ export default function FreedomAiPage() {
         };
         messagesToSend.push(fileMessage);
       }
+
+      // Start ETA progress simulation
+      const progressInterval = setInterval(() => {
+        setEtaProgress(prev => {
+          const newProgress = Math.min(prev + Math.random() * 15, 90);
+          if (newProgress > 70 && etaStatus === 'loading') {
+            setEtaStatus('almost-done');
+          }
+          return newProgress;
+        });
+      }, 1000);
+
+      // Simulate ETA increase after 10 seconds
+      const etaIncreaseTimeout = setTimeout(() => {
+        if (etaStatus === 'loading') {
+          setEtaStatus('eta-increased');
+          setEta('10-25 seconds');
+          sonnerToast.info('ETA increased. Please wait a bit longer.', { position: "bottom-right" });
+        }
+      }, 10000);
 
       const endpoint = isCensored ? '/api/censored-chat' : '/api/uncensored-chat';
       const response = await fetch(endpoint, {
@@ -480,9 +512,15 @@ export default function FreedomAiPage() {
       setMessages(prev => prev.filter((_, i) => i !== prev.length - 1));
     } finally {
       setIsGenerating(false);
+      setEtaStatus('idle');
+      setEtaProgress(0);
       setAttachedFiles([]);
       setAttachedFilesContent(null);
       setUsingSamplePrompt(false);
+      
+      // Clear intervals and timeouts
+      if (progressInterval) clearInterval(progressInterval);
+      if (etaIncreaseTimeout) clearTimeout(etaIncreaseTimeout);
     }
   };
 
@@ -782,21 +820,57 @@ export default function FreedomAiPage() {
                     {isGenerating && (
                       <AnimatePresence>
                         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}>
-                          <div className="flex items-center">
-                            <motion.p initial={{ opacity: 0 }} animate={{ opacity: [0.6, 1, 0.6], transition: { duration: 1.5, repeat: Infinity, ease: "easeInOut" } }}
-                              className="text-gray-400 mt-2 text-md md:text-xl flex items-center italic"
-                            >
-                              Thinking
-                              <div className="flex ml-1">
-                                {[0, 1, 2].map((dot) => (
-                                  <motion.span key={dot} animate={{ opacity: [0.2, 1, 0.2], scale: [0.8, 1.2, 0.8], transition: { duration: 1.5, delay: dot * 0.2, repeat: Infinity, ease: "easeInOut" } }}
-                                    className="mx-0.5 text-xl md:text-2xl"
-                                  >
-                                    .
-                                  </motion.span>
-                                ))}
+                          <div className="flex flex-col gap-3">
+                            <div className="flex items-center">
+                              <motion.p initial={{ opacity: 0 }} animate={{ opacity: [0.6, 1, 0.6], transition: { duration: 1.5, repeat: Infinity, ease: "easeInOut" } }}
+                                className="text-gray-400 mt-2 text-md md:text-xl flex items-center italic"
+                              >
+                                Thinking
+                                <div className="flex ml-1">
+                                  {[0, 1, 2].map((dot) => (
+                                    <motion.span key={dot} animate={{ opacity: [0.2, 1, 0.2], scale: [0.8, 1.2, 0.8], transition: { duration: 1.5, delay: dot * 0.2, repeat: Infinity, ease: "easeInOut" } }}
+                                      className="mx-0.5 text-xl md:text-2xl"
+                                    >
+                                      .
+                                    </motion.span>
+                                  ))}
+                                </div>
+                              </motion.p>
+                            </div>
+                            
+                            {/* ETA Information */}
+                            <div className="bg-gray-800/50 rounded-lg p-3 max-w-md">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-xs text-gray-400 font-medium">Estimated Time</span>
+                                <span className="text-xs text-blue-400 font-medium">{eta}</span>
                               </div>
-                            </motion.p>
+                              
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                  <Loader2 className="w-3 h-3 animate-spin text-blue-400" />
+                                  <span className="text-xs text-gray-300">
+                                    {etaStatus === 'almost-done' && 'Almost done...'}
+                                    {etaStatus === 'eta-increased' && 'ETA increased, please wait...'}
+                                    {etaStatus === 'loading' && 'Processing...'}
+                                  </span>
+                                </div>
+                                
+                                {/* Progress Bar */}
+                                <div className="w-full bg-gray-700 rounded-full h-1">
+                                  <div 
+                                    className="bg-gradient-to-r from-blue-500 to-cyan-500 h-1 rounded-full transition-all duration-300"
+                                    style={{ width: `${etaProgress}%` }}
+                                  />
+                                </div>
+                                
+                                {/* ETA Increase Notification */}
+                                {etaStatus === 'eta-increased' && (
+                                  <div className="text-xs text-amber-400 bg-amber-900/20 p-2 rounded">
+                                    ⚠️ ETA has increased. Please wait a bit longer.
+                                  </div>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </motion.div>
                       </AnimatePresence>
