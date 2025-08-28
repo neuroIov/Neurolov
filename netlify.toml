@@ -1,13 +1,14 @@
 [build]
-  command = "npx pnpm install && npx pnpm run build"
+  command = "npx pnpm install --no-frozen-lockfile && npx pnpm run build"
   publish = ".next"
 
 [build.environment]
   NEXT_USE_NETLIFY_EDGE = "true"
   NEXT_TELEMETRY_DISABLED = "1"
-  NODE_VERSION = "20"
+  NODE_VERSION = "20.19.0"
   NPM_FLAGS = "--version"
   NEXT_PUBLIC_SITE_URL = "https://app.neurolov.ai"
+  NETLIFY_USE_PNPM = "true"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
