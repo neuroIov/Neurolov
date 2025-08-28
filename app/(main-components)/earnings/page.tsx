@@ -64,7 +64,11 @@ export default function EarningsPage() {
         isOpen={isInviteShareModalOpen}
         onClose={() => setIsInviteShareModalOpen(false)}
         referralCode={refCode}
+        toastText='Invite'
         inviteLink={`${productionLink}?referral=${encodeURIComponent(refCode)}`}
+        title="Invite Friends"
+        subTitle="Spread the word and earn rewards!"
+        message={refMessage}
       />
 
       <div className="min-h-[100dvh] h-full w-full bg-black text-white relative overflow-hidden flex flex-col">

@@ -133,9 +133,7 @@ export const DeployModelButton: React.FC<DeployModelButtonProps> = ({
       const client = GPULabClient.getInstance();
       const result = await client.createContainer(
         deploymentData.volume_identifier,
-        gpu.name,
-        1,
-        ''
+        gpu.name
       );
 
       console.log('[Debug] Container creation response:', result);

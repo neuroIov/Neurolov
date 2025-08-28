@@ -7,7 +7,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2 } from "lucide-react";
 
-import { Agent } from '../types';
+interface Agent {
+  name: string;
+  description: string;
+  type: string;
+  status: string;
+  usage: number;
+  price: number;
+}
 
 interface AgentInteractionDialogProps {
   isOpen: boolean;

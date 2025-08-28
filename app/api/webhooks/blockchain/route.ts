@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import crypto from 'crypto';
 
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -66,6 +65,7 @@ const verifyWebhookSignature = (signature: string, payload: any): boolean => {
     }
 
     // Basic HMAC verification for custom webhooks
+    const crypto = require('crypto');
     const expectedSignature = crypto
       .createHmac('sha256', webhookSecret)
       .update(JSON.stringify(payload))

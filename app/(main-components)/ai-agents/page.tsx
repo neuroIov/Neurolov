@@ -12,7 +12,23 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ComingSoonOverlay } from '@/components/ComingSoonOverlay';
 
-import { Agent } from './types';
+interface Agent {
+  name: string;
+  description: string;
+  icon: string;
+  status: "active" | "inactive";
+  usageCount?: number;
+  performance?: number;
+  pricing: {
+    monthly: number;
+    yearly: number;
+    payAsYouGo: number;
+  };
+  features: string[];
+  category: "Essential" | "Professional" | "Enterprise";
+  deploymentTime: string;
+  securityLevel: string;
+}
 
 const container = {
   hidden: { opacity: 0 },
@@ -29,12 +45,12 @@ const item = {
   show: { opacity: 1, y: 0 }
 };
 
-const onChainAgents: Agent[] = [
+const onChainAgents = [
   {
     name: "Smart Contract Auditor",
     description: "Automated security analysis and vulnerability detection in smart contracts",
     icon: "🛡️",
-    status: "active" as const,
+    status: "active",
     usageCount: 1234,
     performance: 95,
     pricing: {
@@ -48,7 +64,7 @@ const onChainAgents: Agent[] = [
       "Best practices enforcement",
       "Custom rule creation"
     ],
-    category: "Professional" as const,
+    category: "Professional",
     deploymentTime: "2-5 min",
     securityLevel: "Enterprise-grade"
   },
@@ -56,7 +72,7 @@ const onChainAgents: Agent[] = [
     name: "DeFi Portfolio Manager",
     description: "Optimizes yield farming and liquidity provision strategies",
     icon: "📊",
-    status: "active" as const,
+    status: "active",
     usageCount: 856,
     performance: 88,
     pricing: {
@@ -71,7 +87,7 @@ const onChainAgents: Agent[] = [
       "Market trend analysis",
       "Multi-chain support"
     ],
-    category: "Essential" as const,
+    category: "Essential",
     deploymentTime: "1-2 minutes",
     securityLevel: "Professional"
   },
@@ -79,7 +95,7 @@ const onChainAgents: Agent[] = [
     name: "NFT Market Analyzer",
     description: "Tracks and predicts NFT market trends and opportunities",
     icon: "🎨",
-    status: "active" as const,
+    status: "active",
     usageCount: 567,
     performance: 92,
     pricing: {
@@ -94,7 +110,7 @@ const onChainAgents: Agent[] = [
       "Customizable alerts",
       "API access"
     ],
-    category: "Professional" as const,
+    category: "Professional",
     deploymentTime: "2-3 minutes",
     securityLevel: "Enterprise-grade"
   },
@@ -102,7 +118,7 @@ const onChainAgents: Agent[] = [
     name: "DAO Governance Assistant",
     description: "Helps analyze and participate in DAO governance proposals",
     icon: "⚖️",
-    status: "active" as const,
+    status: "active",
     usageCount: 432,
     performance: 85,
     pricing: {
@@ -117,7 +133,7 @@ const onChainAgents: Agent[] = [
       "Customizable alerts",
       "API access"
     ],
-    category: "Essential" as const,
+    category: "Essential",
     deploymentTime: "1-2 minutes",
     securityLevel: "Professional"
   },
@@ -125,7 +141,7 @@ const onChainAgents: Agent[] = [
     name: "Gas Price Optimizer",
     description: "Optimizes transaction timing based on gas prices",
     icon: "⛽",
-    status: "active" as const,
+    status: "active",
     usageCount: 978,
     performance: 97,
     pricing: {
@@ -139,18 +155,18 @@ const onChainAgents: Agent[] = [
       "Customizable alerts",
       "API access"
     ],
-    category: "Essential" as const,
+    category: "Essential",
     deploymentTime: "1 minute",
     securityLevel: "Professional"
   },
 ];
 
-const offChainAgents: Agent[] = [
+const offChainAgents = [
   {
     name: "Market Sentiment Analyzer",
     description: "Analyzes social media and news for market sentiment",
     icon: "📈",
-    status: "active" as const,
+    status: "active",
     usageCount: 789,
     performance: 91,
     pricing: {
@@ -165,7 +181,7 @@ const offChainAgents: Agent[] = [
       "Trend prediction",
       "API access"
     ],
-    category: "Essential" as const,
+    category: "Essential",
     deploymentTime: "1-3 minutes",
     securityLevel: "Professional"
   },
@@ -173,7 +189,7 @@ const offChainAgents: Agent[] = [
     name: "Code Generation Assistant",
     description: "Helps generate and optimize code for blockchain applications",
     icon: "💻",
-    status: "active" as const,
+    status: "active",
     usageCount: 1567,
     performance: 94,
     pricing: {
@@ -187,7 +203,7 @@ const offChainAgents: Agent[] = [
       "Customizable templates",
       "API access"
     ],
-    category: "Professional" as const,
+    category: "Professional",
     deploymentTime: "2-3 minutes",
     securityLevel: "Enterprise-grade"
   },
@@ -195,7 +211,7 @@ const offChainAgents: Agent[] = [
     name: "Documentation Helper",
     description: "Assists in creating and maintaining project documentation",
     icon: "📝",
-    status: "active" as const,
+    status: "active",
     usageCount: 345,
     performance: 89,
     pricing: {
@@ -209,7 +225,7 @@ const offChainAgents: Agent[] = [
       "Customizable templates",
       "API access"
     ],
-    category: "Essential" as const,
+    category: "Essential",
     deploymentTime: "1-2 minutes",
     securityLevel: "Professional"
   },
@@ -217,7 +233,7 @@ const offChainAgents: Agent[] = [
     name: "Testing Automation",
     description: "Automates testing procedures for blockchain applications",
     icon: "🔧",
-    status: "active" as const,
+    status: "active",
     usageCount: 678,
     performance: 93,
     pricing: {
@@ -231,7 +247,7 @@ const offChainAgents: Agent[] = [
       "Customizable test suites",
       "API access"
     ],
-    category: "Professional" as const,
+    category: "Professional",
     deploymentTime: "2-3 minutes",
     securityLevel: "Enterprise-grade"
   },
@@ -239,7 +255,7 @@ const offChainAgents: Agent[] = [
     name: "Performance Monitor",
     description: "Monitors and optimizes application performance",
     icon: "📊",
-    status: "active" as const,
+    status: "active",
     usageCount: 890,
     performance: 96,
     pricing: {
@@ -253,7 +269,7 @@ const offChainAgents: Agent[] = [
       "Customizable alerts",
       "API access"
     ],
-    category: "Professional" as const,
+    category: "Professional",
     deploymentTime: "2-3 minutes",
     securityLevel: "Enterprise-grade"
   },

@@ -242,7 +242,7 @@ export default function VideoGeneratorPage() {
           }
 
           // Extract video URL from response
-          const videoUrl = pollData.data?.task_result?.videos?.[0]?.url || null;
+          let videoUrl = pollData.data?.task_result?.videos?.[0]?.url || null;
           console.log("Video URL status:", {
             hasUrl: Boolean(videoUrl),
             url: videoUrl,

@@ -43,8 +43,8 @@ function BoundsControl() {
 
   useEffect(() => {
     // Set maximum bounds (whole world)
-    const southWest: [number, number] = [-90, -180];
-    const northEast: [number, number] = [90, 180];
+    const southWest = [-90, -180];
+    const northEast = [90, 180];
     map.setMaxBounds([southWest, northEast]);
     
     // Set minimum zoom level

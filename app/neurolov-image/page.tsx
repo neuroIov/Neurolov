@@ -401,7 +401,7 @@ export default function NeuroImageGenerator() {
       <div className="main-content bg-[#2c2c2c]" style={{ left: 0 }} ref={chatContainerRef}>
         <div className='bg-black/10 relative'>
           <span className='text-xl sm:text-2xl lg:text-4xl absolute lg:top-8 top-2 left-4 sm:left-10 md:top-4'>Neurolov Image Gen</span>
-          <img src='/ai-models/neuro image.png' className='h-16 lg:h-24 w-full object-cover' alt='Neurolov Image Generator'/>
+          <img src='/ai-models/neuro image.png' className='h-16 lg:h-24 w-full object-cover'/>
         </div> 
       
         <div className="image-gen" style={{ maxWidth: '1200px' }}>

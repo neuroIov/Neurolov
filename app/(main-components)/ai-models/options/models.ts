@@ -4,7 +4,6 @@ export const models: AIModel[] = [
   {
     id: 'neurolov-image',
     name: 'Neuro Image Gen',
-    type: 'image-generation',
     description: 'Advanced AI image generation. Create stunning visuals with our cutting-edge technology.Faster,Smarter and Limitless',
     tags: ['Image Generation', 'AI', 'Multi-Model'],
     iconBg: 'bg-blue-500/10',
@@ -24,7 +23,6 @@ export const models: AIModel[] = [
   {
     id: 'freedom-ai',
     name: 'Freedom-AI',
-    type: 'chat',
     description: 'Engage in unrestricted conversations without any censorship or limitations,dive in with your thoughts. Ask anything and get unfiltered responses.',
     features: [
       'Unrestricted conversations',
@@ -45,9 +43,7 @@ export const models: AIModel[] = [
   {
     id: 'text-to-3d',
     name: '3D Creator Pro',
-    type: '3d-generation',
     description: 'Transform text descriptions into stunning 3D models. Create detailed meshes, sculptures, and objects using advanced AI technology.',
-    iconBg: 'bg-green-500/10',
     features: [
       'Text to 3D model generation',
       'Multiple output formats',
@@ -68,7 +64,6 @@ export const models: AIModel[] = [
   {
     id: 'video',
     name: 'AI Video Generator',
-    type: 'video-generation',
     description: 'Create stunning videos from text descriptions or transform existing videos with AI-powered effects and enhancements.',
     tags: ['Video', 'AI', 'Creation'],
     iconBg: 'bg-red-500/10',
@@ -88,7 +83,6 @@ export const models: AIModel[] = [
   {
     id: 'music-ai',
     name: 'AI Music Studio',
-    type: 'audio-generation',
     description: 'Create original music, generate melodies, and produce professional-grade audio with our AI-powered music studio.',
     tags: ['Music', 'AI', 'Audio'],
     iconBg: 'bg-purple-500/10',
@@ -108,7 +102,6 @@ export const models: AIModel[] = [
   {
     id: 'deepfake',
     name: 'AI Deepfake Studio',
-    type: 'face-swap',
     description: 'Create stunning face swaps in images and videos using advanced AI technology',
 
     tags: ['Deepfake', 'AI', 'Face Swap'],
