@@ -65,7 +65,12 @@ interface ReferredUser {
 
 }
 
-export const GamifiedProfile: React.FC = ({setIsShareModalOpen, setRefCode}: any) => {
+interface GamifiedProfileProps {
+  setIsShareModalOpen: (isOpen: boolean) => void;
+  setRefCode: (code: string) => void;
+}
+
+export const GamifiedProfile: React.FC<GamifiedProfileProps> = ({setIsShareModalOpen, setRefCode}) => {
   const { user, loading } = useUser();
   const {
     progressState, 

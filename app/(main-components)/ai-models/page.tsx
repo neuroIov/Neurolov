@@ -51,7 +51,7 @@ import {
 } from '@/components/ui/dialog';
 import { GPU, gpuData } from '@/constants/values';
 import { GPULabClient } from '@/app/gpulab/gpulab-service';
-import { useModelBag } from '@/store/model-bag';
+import { useModelBag, type AIModel } from '@/store/model-bag';
 import { CheckIcon } from '@/components/icons/CheckIcon';
 import Image from 'next/image';
 import ModelStatus from "@/app/gpulab/model-status";
@@ -73,21 +73,6 @@ interface DeployedContainer {
   model_features: string[];
 }
 
-interface AIModel {
-  id: string;
-  name: string;
-  description: string;
-  type: string;
-  tags: string[];
-  iconBg: string;
-  features?: string[];
-  defaultConfig: {
-    containerImage: string;
-    exposedPorts: number[];
-    minDisk: number;
-    minVram: number;
-  };
-}
 
 // Add new interface for model ETA data
 interface ModelETA {

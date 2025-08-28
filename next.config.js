@@ -1,5 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    serverComponentsExternalPackages: ['canvas', 'jsdom']
+  },
+  // Fix for Windows OneDrive symlink issues
+  onDemandEntries: {
+    // Period (in ms) where the server will keep pages in the buffer
+    maxInactiveAge: 25 * 1000,
+    // Number of pages that should be kept simultaneously without being disposed
+    pagesBufferLength: 2,
+  },
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -16,7 +26,7 @@ const nextConfig = {
       },
     ],
   },
-  webpack: (config) => {
+  webpack: (config, { isServer, dev }) => {
     config.resolve.alias = {
       ...config.resolve.alias,
     };
@@ -31,6 +41,30 @@ const nextConfig = {
       fs: false,
       path: false
     };
+
+    // Remove console statements in production
+    if (!dev && !isServer) {
+      config.optimization = {
+        ...config.optimization,
+        minimizer: [
+          ...config.optimization.minimizer,
+        ],
+      };
+      
+      // Add Terser plugin to remove console statements
+      const TerserPlugin = require('terser-webpack-plugin');
+      config.optimization.minimizer.push(
+        new TerserPlugin({
+          terserOptions: {
+            compress: {
+              drop_console: true,
+              drop_debugger: true,
+            },
+          },
+        })
+      );
+    }
+    
     return config;
   },
   async redirects() {

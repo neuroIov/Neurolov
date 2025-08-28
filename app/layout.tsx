@@ -2,6 +2,7 @@
 
 import "./globals.css";
 import React from 'react';
+import { disableConsole } from '@/utils/console-security';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useUser } from '@/app/auth/useUser';
@@ -120,6 +121,11 @@ function MainLayout({
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const router = useRouter();
   const { user, loading } = useUser();
+
+  // Initialize console security in production
+  React.useEffect(() => {
+    disableConsole();
+  }, []);
 
   const handleLogout = async () => {
     try {

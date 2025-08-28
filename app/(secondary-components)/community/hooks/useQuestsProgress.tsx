@@ -58,7 +58,7 @@ export function useQuestProgress() {
       
       // Calculate new progress
       const previousProgress = targetQuest.current_progress;
-      let newProgress = Math.min(previousProgress + incrementAmount, targetQuest.required_progress);
+      const newProgress = Math.min(previousProgress + incrementAmount, targetQuest.required_progress);
       const wasCompleted = targetQuest.isCompleted;
       const isNowCompleted = newProgress >= targetQuest.required_progress;
       

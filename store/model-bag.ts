@@ -8,10 +8,10 @@ export interface AIModel {
   name: string;
   description: string;
   type: string;
-  tags: string[];
+  tags?: string[];
   iconBg: string;
   features?: string[];
-  defaultConfig: {
+  defaultConfig?: {
     containerImage: string;
     exposedPorts: number[];
     minDisk: number;
@@ -21,6 +21,25 @@ export interface AIModel {
     likes: number;
     popularity: number;
     activeUsers: number;
+  };
+  // Additional optional properties
+  link?: string;
+  likes?: number;
+  isNew?: boolean;
+  isBeta?: boolean;
+  category?: string;
+  isComingSoon?: boolean;
+  isPopular?: boolean;
+  isFeatured?: boolean;
+  price?: number;
+  gpuRequirements?: {
+    minGPU: string;
+    minVRAM: number;
+    minCores: number;
+  };
+  icon?: {
+    name: string;
+    color: string;
   };
 }
 

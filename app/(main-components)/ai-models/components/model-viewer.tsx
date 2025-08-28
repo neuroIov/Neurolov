@@ -165,7 +165,7 @@ function ModelWrapper({ src }: ModelWrapperProps) {
             // Check if camera is PerspectiveCamera
             if (camera instanceof THREE.PerspectiveCamera) {
               const fov = camera.fov * (Math.PI / 180);
-              let cameraZ = Math.abs(maxDim / Math.sin(fov / 2));
+              const cameraZ = Math.abs(maxDim / Math.sin(fov / 2));
               
               // Set camera to view the center of the model
               camera.position.set(center.x, center.y, center.z + cameraZ * 1.5);

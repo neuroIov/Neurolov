@@ -1,4 +1,4 @@
-# Crypto Payment Integration Setup
+# Solana Payment Integration Setup
 
 ## Database Setup
 
@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS payment_intents (
   plan_id VARCHAR(50) NOT NULL,
   amount DECIMAL(18, 8) NOT NULL,
   currency VARCHAR(10) NOT NULL,
-  crypto_type VARCHAR(20) NOT NULL,
+  crypto_type VARCHAR(20) NOT NULL DEFAULT 'sol',
   status VARCHAR(20) NOT NULL DEFAULT 'pending',
   wallet_address VARCHAR(100) NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -26,35 +26,33 @@ CREATE INDEX IF NOT EXISTS idx_payment_intents_user_id ON payment_intents(user_i
 CREATE INDEX IF NOT EXISTS idx_payment_intents_status ON payment_intents(status);
 ```
 
+## Environment Variables
+
+Set up the following environment variable in your `.env.local` file:
+
+```
+SOLANA_WALLET_ADDRESS=2twCAHzwANMtUc55DhhgT767YdyhBTY98EecBwHJJsxm
+```
+
 ## Blockchain Setup
 
 ### Solana
 
 1. Set up a Solana RPC endpoint (e.g., QuickNode, Alchemy, or your own node)
-2. Configure the webhook to listen for transactions to your wallet
-
-### Ethereum
-
-1. Set up an Ethereum RPC endpoint
-2. Configure the webhook to listen for transactions to your wallet
-
-### Bitcoin
-
-1. Set up a Bitcoin node or use a service like BlockCypher
-2. Configure the webhook to listen for transactions to your wallet
+2. Configure the webhook to listen for transactions to your wallet address
 
 ## Webhook Configuration
 
 1. Deploy the application
-2. Set up webhook URLs for each blockchain to point to:
+2. Set up webhook URL for Solana to point to:
    - `https://yourdomain.com/api/webhooks/blockchain`
 3. Configure the webhook to send transaction data in the following format:
 
 ```json
 {
-  "blockchain": "solana" | "ethereum" | "bitcoin",
+  "blockchain": "solana",
   "signature": "transaction_signature",
-  "amount": "amount_in_smallest_unit",
+  "amount": "amount_in_lamports",
   "destination": "destination_wallet_address",
   "referenceId": "payment_reference_id"
 }

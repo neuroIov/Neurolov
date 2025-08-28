@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
 import { createClient } from '@supabase/supabase-js';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -32,12 +31,21 @@ const getUserId = async (req: Request): Promise<string | null> => {
 // Create a new payment intent
 export async function POST(request: Request) {
   try {
-    const userId = await getUserId(request);
+    // Get user ID and validate auth
+    let userId = await getUserId(request);
+    
+    // For development/testing - allow without auth if no user found
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      const isDevelopment = process.env.NODE_ENV === 'development';
+      if (isDevelopment) {
+        userId = 'test-user-' + Date.now(); // Generate test user ID
+        console.log('DEV MODE: Using test user ID:', userId);
+      } else {
+        return NextResponse.json(
+          { error: 'Unauthorized' },
+          { status: 401 }
+        );
+      }
     }
 
     const { planId, amount, currency, cryptoType } = await request.json();
@@ -50,18 +58,21 @@ export async function POST(request: Request) {
       );
     }
 
-    // Get wallet address for the selected crypto
-    const walletAddresses = {
-      sol: process.env.SOLANA_WALLET_ADDRESS!,
-      eth: process.env.ETHEREUM_WALLET_ADDRESS!,
-      btc: process.env.BITCOIN_WALLET_ADDRESS!,
-    };
-
-    const walletAddress = walletAddresses[cryptoType as keyof typeof walletAddresses];
+    // Get wallet address for Solana
+    const walletAddress = process.env.SOLANA_WALLET_ADDRESS!;
+    
+    // Only accept Solana payments
+    if (cryptoType !== 'sol') {
+      return NextResponse.json(
+        { error: 'Only Solana payments are supported' },
+        { status: 400 }
+      );
+    }
+    
     if (!walletAddress) {
       return NextResponse.json(
-        { error: 'Invalid cryptocurrency type' },
-        { status: 400 }
+        { error: 'Solana wallet address not configured' },
+        { status: 500 }
       );
     }
 
@@ -70,31 +81,27 @@ export async function POST(request: Request) {
     const expiresAt = new Date();
 expiresAt.setHours(expiresAt.getHours() + 1); // 1 hour expiry
 
-    const { rows } = await sql`
-      INSERT INTO payment_intents (
-        reference_id, 
-        user_id, 
-        plan_id, 
-        amount, 
-        currency, 
-        crypto_type, 
-        wallet_address, 
-        expires_at
-      )
-      VALUES (
-        ${referenceId},
-        ${userId},
-        ${planId},
-        ${amount},
-        ${currency},
-        ${cryptoType},
-        ${walletAddress},
-        ${expiresAt.toISOString()}
-      )
-      RETURNING *
-    `;
+    const { data: paymentIntent, error: insertError } = await supabase
+      .from('payment_intents')
+      .insert([
+        {
+          reference_id: referenceId,
+          user_id: userId,
+          plan_id: planId,
+          amount: amount,
+          currency: currency,
+          crypto_type: cryptoType,
+          wallet_address: walletAddress,
+          expires_at: expiresAt.toISOString()
+        }
+      ])
+      .select()
+      .single();
 
-    const paymentIntent = rows[0];
+    if (insertError || !paymentIntent) {
+      console.error('Error creating payment intent:', insertError);
+      throw new Error('Failed to create payment intent');
+    }
 
     return NextResponse.json({
       referenceId: paymentIntent.reference_id,
@@ -127,19 +134,20 @@ export async function GET(request: Request) {
       );
     }
 
-    const { rows } = await sql`
-      SELECT * FROM payment_intents 
-      WHERE reference_id = ${referenceId}
-    `;
+    const { data: rows, error: selectError } = await supabase
+      .from('payment_intents')
+      .select('*')
+      .eq('reference_id', referenceId)
+      .single();
 
-    if (rows.length === 0) {
+    if (selectError || !rows) {
       return NextResponse.json(
         { error: 'Payment intent not found' },
         { status: 404 }
       );
     }
 
-    const paymentIntent = rows[0];
+    const paymentIntent = rows;
     
     return NextResponse.json({
       status: paymentIntent.status,

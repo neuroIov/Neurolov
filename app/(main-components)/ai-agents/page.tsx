@@ -12,23 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ComingSoonOverlay } from '@/components/ComingSoonOverlay';
 
-interface Agent {
-  name: string;
-  description: string;
-  icon: string;
-  status: "active" | "inactive";
-  usageCount?: number;
-  performance?: number;
-  pricing: {
-    monthly: number;
-    yearly: number;
-    payAsYouGo: number;
-  };
-  features: string[];
-  category: "Essential" | "Professional" | "Enterprise";
-  deploymentTime: string;
-  securityLevel: string;
-}
+import { Agent } from './types';
 
 const container = {
   hidden: { opacity: 0 },
@@ -45,12 +29,12 @@ const item = {
   show: { opacity: 1, y: 0 }
 };
 
-const onChainAgents = [
+const onChainAgents: Agent[] = [
   {
     name: "Smart Contract Auditor",
     description: "Automated security analysis and vulnerability detection in smart contracts",
     icon: "🛡️",
-    status: "active",
+    status: "active" as const,
     usageCount: 1234,
     performance: 95,
     pricing: {
@@ -64,7 +48,7 @@ const onChainAgents = [
       "Best practices enforcement",
       "Custom rule creation"
     ],
-    category: "Professional",
+    category: "Professional" as const,
     deploymentTime: "2-5 min",
     securityLevel: "Enterprise-grade"
   },
@@ -72,7 +56,7 @@ const onChainAgents = [
     name: "DeFi Portfolio Manager",
     description: "Optimizes yield farming and liquidity provision strategies",
     icon: "📊",
-    status: "active",
+    status: "active" as const,
     usageCount: 856,
     performance: 88,
     pricing: {
@@ -87,7 +71,7 @@ const onChainAgents = [
       "Market trend analysis",
       "Multi-chain support"
     ],
-    category: "Essential",
+    category: "Essential" as const,
     deploymentTime: "1-2 minutes",
     securityLevel: "Professional"
   },
@@ -95,7 +79,7 @@ const onChainAgents = [
     name: "NFT Market Analyzer",
     description: "Tracks and predicts NFT market trends and opportunities",
     icon: "🎨",
-    status: "active",
+    status: "active" as const,
     usageCount: 567,
     performance: 92,
     pricing: {
@@ -110,7 +94,7 @@ const onChainAgents = [
       "Customizable alerts",
       "API access"
     ],
-    category: "Professional",
+    category: "Professional" as const,
     deploymentTime: "2-3 minutes",
     securityLevel: "Enterprise-grade"
   },
@@ -118,7 +102,7 @@ const onChainAgents = [
     name: "DAO Governance Assistant",
     description: "Helps analyze and participate in DAO governance proposals",
     icon: "⚖️",
-    status: "active",
+    status: "active" as const,
     usageCount: 432,
     performance: 85,
     pricing: {
@@ -133,7 +117,7 @@ const onChainAgents = [
       "Customizable alerts",
       "API access"
     ],
-    category: "Essential",
+    category: "Essential" as const,
     deploymentTime: "1-2 minutes",
     securityLevel: "Professional"
   },
@@ -141,7 +125,7 @@ const onChainAgents = [
     name: "Gas Price Optimizer",
     description: "Optimizes transaction timing based on gas prices",
     icon: "⛽",
-    status: "active",
+    status: "active" as const,
     usageCount: 978,
     performance: 97,
     pricing: {
@@ -155,18 +139,18 @@ const onChainAgents = [
       "Customizable alerts",
       "API access"
     ],
-    category: "Essential",
+    category: "Essential" as const,
     deploymentTime: "1 minute",
     securityLevel: "Professional"
   },
 ];
 
-const offChainAgents = [
+const offChainAgents: Agent[] = [
   {
     name: "Market Sentiment Analyzer",
     description: "Analyzes social media and news for market sentiment",
     icon: "📈",
-    status: "active",
+    status: "active" as const,
     usageCount: 789,
     performance: 91,
     pricing: {
@@ -181,7 +165,7 @@ const offChainAgents = [
       "Trend prediction",
       "API access"
     ],
-    category: "Essential",
+    category: "Essential" as const,
     deploymentTime: "1-3 minutes",
     securityLevel: "Professional"
   },
@@ -189,7 +173,7 @@ const offChainAgents = [
     name: "Code Generation Assistant",
     description: "Helps generate and optimize code for blockchain applications",
     icon: "💻",
-    status: "active",
+    status: "active" as const,
     usageCount: 1567,
     performance: 94,
     pricing: {
@@ -203,7 +187,7 @@ const offChainAgents = [
       "Customizable templates",
       "API access"
     ],
-    category: "Professional",
+    category: "Professional" as const,
     deploymentTime: "2-3 minutes",
     securityLevel: "Enterprise-grade"
   },
@@ -211,7 +195,7 @@ const offChainAgents = [
     name: "Documentation Helper",
     description: "Assists in creating and maintaining project documentation",
     icon: "📝",
-    status: "active",
+    status: "active" as const,
     usageCount: 345,
     performance: 89,
     pricing: {
@@ -225,7 +209,7 @@ const offChainAgents = [
       "Customizable templates",
       "API access"
     ],
-    category: "Essential",
+    category: "Essential" as const,
     deploymentTime: "1-2 minutes",
     securityLevel: "Professional"
   },
@@ -233,7 +217,7 @@ const offChainAgents = [
     name: "Testing Automation",
     description: "Automates testing procedures for blockchain applications",
     icon: "🔧",
-    status: "active",
+    status: "active" as const,
     usageCount: 678,
     performance: 93,
     pricing: {
@@ -247,7 +231,7 @@ const offChainAgents = [
       "Customizable test suites",
       "API access"
     ],
-    category: "Professional",
+    category: "Professional" as const,
     deploymentTime: "2-3 minutes",
     securityLevel: "Enterprise-grade"
   },
@@ -255,7 +239,7 @@ const offChainAgents = [
     name: "Performance Monitor",
     description: "Monitors and optimizes application performance",
     icon: "📊",
-    status: "active",
+    status: "active" as const,
     usageCount: 890,
     performance: 96,
     pricing: {
@@ -269,7 +253,7 @@ const offChainAgents = [
       "Customizable alerts",
       "API access"
     ],
-    category: "Professional",
+    category: "Professional" as const,
     deploymentTime: "2-3 minutes",
     securityLevel: "Enterprise-grade"
   },

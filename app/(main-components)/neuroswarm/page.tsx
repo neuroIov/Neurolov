@@ -95,12 +95,26 @@ const NeuroSwarmPage = () => {
     const normalizedEmail = normalizeEmail(email);
     console.log(`Checking if email exists in Swarm: ${normalizedEmail}`);
     try {
-      // Check if email exists in Swarm's user_profiles
+      // Check if email exists in Swarm's user_profiles using RLS-allowed query
       const { data, error } = await swarmSupabase
         .from('user_profiles')
         .select('*')
         .eq('email', normalizedEmail)
         .single();
+      
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // No data found (this is normal for non-existent accounts)
+          console.log('No Swarm account found for email:', normalizedEmail);
+          setHasSwarmAccount(false);
+          return false;
+        } else {
+          console.error('Error checking Swarm account:', error);
+          setError('Unable to check Swarm account. Please ensure RLS policies are configured properly.');
+          setHasSwarmAccount(false);
+          return false;
+        }
+      }
       
       const exists = !!data;
       setHasSwarmAccount(exists);
@@ -109,12 +123,12 @@ const NeuroSwarmPage = () => {
         console.log('Swarm account found for email:', normalizedEmail);
       } else {
         console.log('No Swarm account found for email:', normalizedEmail);
-        if (error) console.error('Error checking Swarm account:', error);
       }
       
       return exists;
     } catch (error) {
       console.error("Error checking Swarm account:", error);
+      setError('Failed to check Swarm account. Please try again.');
       setHasSwarmAccount(false);
       return false;
     } finally {
@@ -141,12 +155,20 @@ const NeuroSwarmPage = () => {
         throw new Error("Couldn't find Swarm account with this email");
       }
       
-      // Get the Swarm user ID
-      const { data: swarmUser } = await swarmSupabase
+      // Get the Swarm user ID using RLS-allowed query
+      const { data: swarmUser, error: swarmError } = await swarmSupabase
         .from('user_profiles')
         .select('id')
         .eq('email', emailToCheck)
         .single();
+      
+      if (swarmError) {
+        if (swarmError.code === 'PGRST116') {
+          throw new Error("Couldn't find Swarm account with this email");
+        } else {
+          throw new Error('Database permissions issue. Please ensure RLS policies are configured properly.');
+        }
+      }
       
       if (!swarmUser) {
         throw new Error("Couldn't find Swarm account with this email");
@@ -163,11 +185,15 @@ const NeuroSwarmPage = () => {
         plan: userPlan
       });
 
+      // Update plan in swarm database
       const { error: updateError } = await swarmSupabase.from('user_profiles').update({
         plan: userPlan
       }).eq('email', emailToCheck);
-
-      if (updateError) throw updateError;
+      
+      if (updateError) {
+        console.warn('Could not update plan in swarm database due to RLS policies:', updateError);
+        // Don't throw error here since the linking is the main goal
+      }
       
       if (error) throw error;
       
@@ -199,7 +225,7 @@ const NeuroSwarmPage = () => {
       const emailToUseRaw = useDifferentEmail ? swarmEmail : user?.email;
       const emailToUse = normalizeEmail(emailToUseRaw || '');
       
-      // Check if account already exists
+      // Check if account already exists using service role
       const exists = await checkExistingSwarmAccount(emailToUse);
       if (exists) {
         throw new Error(`An account with email ${emailToUse} already exists in Swarm`);

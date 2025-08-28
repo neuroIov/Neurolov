@@ -213,45 +213,56 @@ const SubscriptionPage = () => {
     amount: number;
     referenceId: string;
     address: string;
+    txHash?: string;
   }) => {
     try {
-      // In a real app, you would send this to your backend for verification
-      // For now, we'll just show a success message and close the modal
-      toast.success('Payment submitted for verification. We will activate your subscription once we confirm the transaction.', {
-        duration: 5000,
+      if (!paymentDetails.txHash) {
+        toast.error('Transaction hash is required for verification');
+        return false;
+      }
+
+      toast.info('Verifying payment on Solana blockchain...', { duration: 3000 });
+
+      // Calculate expected SOL amount from USD
+      const solPrice = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd')
+        .then(res => res.json())
+        .then(data => data.solana?.usd);
+      
+      const expectedSolAmount = paymentAmount / solPrice;
+
+      // Verify payment with blockchain
+      const response = await fetch('/api/verify-crypto-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          txHash: paymentDetails.txHash,
+          expectedAmount: expectedSolAmount,
+          referenceId: paymentDetails.referenceId,
+          planId: selectedPlan,
+          userId: user?.id,
+        }),
       });
+
+      const result = await response.json();
       
-      // Here you would typically send the payment details to your backend
-      // for verification. The backend would then verify the transaction on the
-      // blockchain and update the user's subscription status accordingly.
-      // 
-      // Example API call (commented out):
-      // const response = await fetch('/api/verify-crypto-payment', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     txHash: paymentDetails.referenceId,
-      //     cryptoType: paymentDetails.cryptoType,
-      //     planId: selectedPlan,
-      //     amount: paymentDetails.amount,
-      //     address: paymentDetails.address,
-      //     userId: user?.id,
-      //   }),
-      // });
-      // 
-      // const result = await response.json();
-      // if (!result.success) {
-      //   throw new Error(result.error || 'Payment verification failed');
-      // }
-      
-      // For demo purposes, we'll just show a success message
-      // In a real app, you would wait for the backend to verify the payment
-      // before updating the user's subscription
+      if (!result.success) {
+        throw new Error(result.error || 'Payment verification failed');
+      }
+
+      // Payment verified - update user plan
+      if (selectedPlan) {
+        const planUpdated = await updateUserPlan(selectedPlan);
+        if (planUpdated) {
+          toast.success('🎉 Payment verified! Your subscription is now active.', {
+            duration: 5000,
+          });
+        }
+      }
       
       return true;
     } catch (error: any) {
       console.error('Error processing crypto payment:', error);
-      toast.error(error?.message || 'Failed to process payment. Please contact support.');
+      toast.error(error?.message || 'Payment verification failed. Please contact support.');
       return false;
     }
   };
@@ -385,28 +396,38 @@ const SubscriptionPage = () => {
 
       {/* Crypto Payment Modal */}
       {isSubscribeModalOpen && showCryptoPayment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg w-full max-w-md p-6 m-4">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-semibold">
-                {selectedPlan && `Pay for ${selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)} Plan`}
-              </h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-zinc-900 w-full h-full max-h-[90vh] sm:max-w-2xl lg:max-w-3xl rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+            <div className="sticky top-0 bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-gray-700 p-4 sm:p-6 flex justify-between items-center z-10">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold">
+                  {selectedPlan && `${subscriptionPlans.find(p => p.id === selectedPlan)?.name || 'Crypto Payment'}`}
+                </h2>
+                <p className="text-sm sm:text-base text-muted-foreground mt-1">
+                  Complete your payment securely
+                </p>
+              </div>
               <button
                 onClick={() => setShowCryptoPayment(false)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors touch-manipulation"
+                aria-label="Close payment modal"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
             
-            <ManualCryptoPayment 
-              amount={paymentAmount}
-              onAmountChange={setPaymentAmount}
-              onPaymentSent={handleCryptoPaymentSuccess}
-              onCancel={() => setShowCryptoPayment(false)}
-            />
+            <div className="flex-1 overflow-y-auto overscroll-contain">
+              <div className="p-4 sm:p-6 pb-8">
+                <ManualCryptoPayment 
+                  amount={paymentAmount}
+                  onPaymentSent={handleCryptoPaymentSuccess}
+                  onCancel={() => setShowCryptoPayment(false)}
+                  planName={selectedPlan ? subscriptionPlans.find(p => p.id === selectedPlan)?.name : undefined}
+                />
+              </div>
+            </div>
           </div>
         </div>
       )}

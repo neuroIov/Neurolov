@@ -16,17 +16,7 @@ export interface GPULabResponse {
     status: string;
     message?: string;
     container_id?: string;
-    data?: {// Create container
-    const containerResponse = await gpuLabClient.createContainer(volumeIdentifier, gpuType);
-    
-    // Get container address
-    const containerAddress = await gpuLabClient.getContainerAddress(volumeIdentifier);
-    if (containerAddress) {
-        // Use containerAddress for further operations
-        console.log('Container address:', containerAddress);
-    } else {
-        console.error('Failed to get container address');
-    }
+    data?: {
         model_id?: number;
         volume_id?: string;
         container_identifier?: string;
