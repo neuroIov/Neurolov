@@ -71,7 +71,7 @@ export const ManualCryptoPayment = ({
     setIsLoadingPrices(true);
     try {
       const response = await fetch(
-        'https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd',
+        'https://api.coingecko.com/api/v3/simple/price?ids=solana,swarm&vs_currencies=usd',
         {
           headers: {
             'Accept': 'application/json',
@@ -86,6 +86,7 @@ export const ManualCryptoPayment = ({
       
       setCryptoAddresses(prev => ({
         sol: { ...prev.sol, price: data.solana?.usd, priceLastUpdated: now },
+        swarm: { ...prev.swarm, price: data.swarm?.usd, priceLastUpdated: now },
       }));
       
       setLastPriceUpdate(now);
@@ -135,6 +136,14 @@ export const ManualCryptoPayment = ({
       price: 0,
       priceLastUpdated: 0
     },
+    swarm: {
+      symbol: 'SWARM',
+      name: 'Swarm',
+      address: 'otgodXJDJFFip57AA43ERfDs8pcGviDd9oUJsnEcyai',
+      chain: 'solana',
+      price: 0,
+      priceLastUpdated: 0
+    },
   });
 
   const selected = cryptoAddresses[selectedCrypto];
@@ -164,17 +173,36 @@ export const ManualCryptoPayment = ({
         return null;
       }
       
-      // Use official Solana Pay specification format
-      const params = new URLSearchParams();
-      params.append('amount', cryptoAmount.toFixed(6));
-      params.append('reference', referenceId);
-      params.append('label', 'Compute Subscription');
-      params.append('message', `Payment for $${amount} subscription`);
-      
-      const paymentUrl = `solana:${crypto.address}?${params.toString()}`;
-      console.log('Generated Solana Pay URL:', paymentUrl);
-      
-      return paymentUrl;
+      if (cryptoKey === 'sol') {
+        // Use official Solana Pay specification format for SOL
+        const params = new URLSearchParams();
+        params.append('amount', cryptoAmount.toFixed(6));
+        params.append('reference', referenceId);
+        params.append('label', 'Compute Subscription');
+        params.append('message', `Payment for $${amount} subscription`);
+        
+        const paymentUrl = `solana:${crypto.address}?${params.toString()}`;
+        console.log('Generated Solana Pay URL:', paymentUrl);
+        
+        return paymentUrl;
+      } else if (cryptoKey === 'swarm') {
+        // For SWARM token, create a basic payment URI since Solana Pay doesn't support SPL tokens yet
+        // Format: solana:<address>?amount=<amount>&spl-token=<token>&reference=<ref>&label=<label>&message=<message>
+        const params = new URLSearchParams();
+        params.append('amount', cryptoAmount.toFixed(6));
+        params.append('spl-token', crypto.address); // SWARM token mint address
+        params.append('reference', referenceId);
+        params.append('label', 'Compute Subscription');
+        params.append('message', `Payment for $${amount} subscription in SWARM tokens`);
+        
+        const paymentUrl = `solana:${process.env.NEXT_PUBLIC_SOLANA_WALLET_ADDRESS || '2twCAHzwANMtUc55DhhgT767YdyhBTY98EecBwHJJsxm'}?${params.toString()}`;
+        console.log('Generated SWARM Payment URL:', paymentUrl);
+        
+        return paymentUrl;
+      } else {
+        console.error('Unsupported crypto type:', cryptoKey);
+        return null;
+      }
     } catch (error) {
       console.error('Error generating payment link:', error);
       toast.error('Failed to generate payment link. Please refresh and try again.');
@@ -315,7 +343,7 @@ export const ManualCryptoPayment = ({
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <span className="font-mono font-semibold">
-                  {getCryptoAmount(amount, selectedCrypto) || '...'} SOL
+                  {getCryptoAmount(amount, selectedCrypto) || '...'} {selectedCryptoData.symbol}
                 </span>
               )}
             </div>
@@ -365,28 +393,65 @@ export const ManualCryptoPayment = ({
         </div>
       </div>
 
-      {/* Cryptocurrency Info */}
+      {/* Cryptocurrency Selection */}
       <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-3">
-        <h3 className="text-base font-semibold mb-3">Payment Method</h3>
-        <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border-2 border-blue-200 dark:border-blue-800">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-              S
-            </div>
-            <div>
-              <p className="font-semibold text-base">Solana (SOL)</p>
-              <p className="text-sm text-muted-foreground">
-                {isLoadingPrices ? (
-                  <Loader2 className="h-3 w-3 animate-spin inline mr-1" />
-                ) : cryptoAddresses.sol.price ? (
-                  `$${cryptoAddresses.sol.price.toLocaleString()}`
-                ) : (
-                  'Price loading...'
-                )}
-              </p>
+        <h3 className="text-base font-semibold mb-3">Choose Payment Method</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Solana (SOL) */}
+          <div 
+            className={cn(
+              "p-3 bg-white dark:bg-gray-800 rounded-lg border-2 cursor-pointer transition-all",
+              selectedCrypto === 'sol' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+            )}
+            onClick={() => setSelectedCrypto('sol')}
+          >
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                S
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-base">Solana (SOL)</p>
+                <p className="text-sm text-muted-foreground">
+                  {isLoadingPrices ? (
+                    <Loader2 className="h-3 w-3 animate-spin inline mr-1" />
+                  ) : cryptoAddresses.sol.price ? (
+                    `$${cryptoAddresses.sol.price.toLocaleString()}`
+                  ) : (
+                    'Price loading...'
+                  )}
+                </p>
+              </div>
+              {selectedCrypto === 'sol' && <Check className="h-5 w-5 text-blue-500" />}
             </div>
           </div>
-          {isLoadingPrices && <Loader2 className="h-5 w-5 animate-spin text-blue-500" />}
+
+          {/* Swarm (SWARM) */}
+          <div 
+            className={cn(
+              "p-3 bg-white dark:bg-gray-800 rounded-lg border-2 cursor-pointer transition-all",
+              selectedCrypto === 'swarm' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+            )}
+            onClick={() => setSelectedCrypto('swarm')}
+          >
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                SW
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-base">Swarm (SWARM)</p>
+                <p className="text-sm text-muted-foreground">
+                  {isLoadingPrices ? (
+                    <Loader2 className="h-3 w-3 animate-spin inline mr-1" />
+                  ) : cryptoAddresses.swarm.price ? (
+                    `$${cryptoAddresses.swarm.price.toLocaleString()}`
+                  ) : (
+                    'Price loading...'
+                  )}
+                </p>
+              </div>
+              {selectedCrypto === 'swarm' && <Check className="h-5 w-5 text-blue-500" />}
+            </div>
+          </div>
         </div>
       </div>
 

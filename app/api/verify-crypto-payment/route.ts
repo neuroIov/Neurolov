@@ -25,7 +25,8 @@ export async function POST(request: NextRequest) {
       expectedAmount, 
       referenceId, 
       planId, 
-      userId 
+      userId,
+      cryptoType = 'sol'  // Default to SOL if not specified
     } = await request.json();
 
     if (!txHash) {
@@ -70,32 +71,66 @@ export async function POST(request: NextRequest) {
       instructions = transaction.transaction.message.compiledInstructions;
     }
 
-    // Find SOL transfer by checking balance changes (more reliable method)
+    // Find transfer by checking balance changes (supports both SOL and SPL tokens)
     let transferFound = false;
     let transferAmount = 0;
     let recipientCorrect = false;
+    let currency = 'SOL';
+    let cryptoTypeDb = 'solana';
 
-    // Get balance changes
-    const preBalances = transaction.meta?.preBalances || [];
-    const postBalances = transaction.meta?.postBalances || [];
-    
-    // Find our wallet's index and balance change
-    const merchantIndex = accountKeys.findIndex((key: PublicKey) => key.toString() === MERCHANT_WALLET);
-    
-    if (merchantIndex !== -1) {
-      const balanceChange = (postBalances[merchantIndex] || 0) - (preBalances[merchantIndex] || 0);
+    // Define SWARM token mint address
+    const SWARM_MINT = 'otgodXJDJFFip57AA43ERfDs8pcGviDd9oUJsnEcyai';
+
+    if (cryptoType === 'sol') {
+      // Native SOL transfer detection
+      const preBalances = transaction.meta?.preBalances || [];
+      const postBalances = transaction.meta?.postBalances || [];
       
-      // If balance increased, we received payment
-      if (balanceChange > 0) {
-        transferAmount = balanceChange / 1000000000; // Convert lamports to SOL
-        transferFound = true;
-        recipientCorrect = true;
+      // Find our wallet's index and balance change
+      const merchantIndex = accountKeys.findIndex((key: PublicKey) => key.toString() === MERCHANT_WALLET);
+      
+      if (merchantIndex !== -1) {
+        const balanceChange = (postBalances[merchantIndex] || 0) - (preBalances[merchantIndex] || 0);
+        
+        // If balance increased, we received payment
+        if (balanceChange > 0) {
+          transferAmount = balanceChange / 1000000000; // Convert lamports to SOL
+          transferFound = true;
+          recipientCorrect = true;
+        }
+      }
+    } else if (cryptoType === 'swarm') {
+      // SPL token transfer detection (SWARM)
+      const preTokenBalances = transaction.meta?.preTokenBalances || [];
+      const postTokenBalances = transaction.meta?.postTokenBalances || [];
+      
+      // Find token balance changes for our wallet and SWARM mint
+      const merchantTokenBalance = postTokenBalances.find((balance: any) => 
+        balance.owner === MERCHANT_WALLET && balance.mint === SWARM_MINT
+      );
+      const merchantPreTokenBalance = preTokenBalances.find((balance: any) => 
+        balance.owner === MERCHANT_WALLET && balance.mint === SWARM_MINT
+      );
+      
+      if (merchantTokenBalance && merchantPreTokenBalance) {
+        const postAmount = parseInt(merchantTokenBalance.uiTokenAmount.amount);
+        const preAmount = parseInt(merchantPreTokenBalance.uiTokenAmount.amount);
+        const balanceChange = postAmount - preAmount;
+        
+        // If balance increased, we received payment
+        if (balanceChange > 0) {
+          transferAmount = balanceChange / Math.pow(10, merchantTokenBalance.uiTokenAmount.decimals); // Convert to token units
+          transferFound = true;
+          recipientCorrect = true;
+          currency = 'SWARM';
+          cryptoTypeDb = 'swarm';
+        }
       }
     }
 
     if (!transferFound) {
       return NextResponse.json(
-        { success: false, error: 'No SOL transfer found in transaction' },
+        { success: false, error: `No ${currency} transfer found in transaction` },
         { status: 400 }
       );
     }
@@ -113,7 +148,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { 
           success: false, 
-          error: `Amount mismatch. Expected: ${expectedAmount} SOL, Received: ${transferAmount} SOL` 
+          error: `Amount mismatch. Expected: ${expectedAmount} ${currency}, Received: ${transferAmount} ${currency}` 
         },
         { status: 400 }
       );
@@ -164,8 +199,8 @@ export async function POST(request: NextRequest) {
       user_id: user.id,
       plan_id: planId,
       amount: transferAmount,
-      currency: 'SOL',
-      crypto_type: 'solana',
+      currency: currency,
+      crypto_type: cryptoTypeDb,
       status: 'confirmed' as const,
       wallet_address: MERCHANT_WALLET,
       tx_hash: txHash,
@@ -257,6 +292,12 @@ async function autoLinkSwarmAccount(userId: string, email: string, supabase: any
 
     // Get swarm database connection
     const swarmSupabase = getSwarmSupabase();
+
+    // If Swarm database is not configured, skip auto-linking
+    if (!swarmSupabase) {
+      console.log('Swarm database not configured - skipping auto-linking');
+      return;
+    }
 
     // Query swarm user_profiles using RLS-allowed query
     const { data: swarmUser, error: swarmQueryError } = await swarmSupabase

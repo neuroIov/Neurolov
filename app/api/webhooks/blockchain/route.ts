@@ -109,13 +109,13 @@ const processSolanaTransaction = async (txData: any) => {
       return false;
     }
     
-    // Find matching payment intent
+    // Find matching payment intent (support both SOL and SWARM)
     const { data: rows, error: selectError } = await supabase
       .from('payment_intents')
       .select('*')
       .eq('reference_id', referenceId)
       .eq('status', 'pending')
-      .eq('crypto_type', 'sol')
+      .or('crypto_type.eq.sol,crypto_type.eq.swarm')  // Check for both SOL and SWARM
       .eq('wallet_address', destination)
       .gt('expires_at', new Date().toISOString())
       .limit(1)

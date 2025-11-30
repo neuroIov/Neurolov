@@ -223,12 +223,27 @@ const SubscriptionPage = () => {
 
       toast.info('Verifying payment on Solana blockchain...', { duration: 3000 });
 
-      // Calculate expected SOL amount from USD
-      const solPrice = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd')
+      // Calculate expected crypto amount from USD based on crypto type
+      let expectedCryptoAmount: number;
+      let priceId: string;
+
+      if (paymentDetails.cryptoType === 'sol') {
+        priceId = 'solana';
+      } else if (paymentDetails.cryptoType === 'swarm') {
+        priceId = 'swarm';
+      } else {
+        throw new Error('Unsupported crypto type');
+      }
+
+      const cryptoPrice = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${priceId}&vs_currencies=usd`)
         .then(res => res.json())
-        .then(data => data.solana?.usd);
-      
-      const expectedSolAmount = paymentAmount / solPrice;
+        .then(data => data[priceId]?.usd);
+
+      if (!cryptoPrice) {
+        throw new Error(`Failed to fetch ${priceId} price`);
+      }
+
+      expectedCryptoAmount = paymentAmount / cryptoPrice;
 
       // Verify payment with blockchain
       const response = await fetch('/api/verify-crypto-payment', {
@@ -236,10 +251,11 @@ const SubscriptionPage = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           txHash: paymentDetails.txHash,
-          expectedAmount: expectedSolAmount,
+          expectedAmount: expectedCryptoAmount,
           referenceId: paymentDetails.referenceId,
           planId: selectedPlan,
           userId: user?.id,
+          cryptoType: paymentDetails.cryptoType,
         }),
       });
 
