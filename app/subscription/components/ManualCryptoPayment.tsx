@@ -406,8 +406,12 @@ export const ManualCryptoPayment = ({
             onClick={() => setSelectedCrypto('sol')}
           >
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                S
+              <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                <img
+                  src="/SOL.jpeg"
+                  alt="Solana Logo"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div className="flex-1">
                 <p className="font-semibold text-base">Solana (SOL)</p>
@@ -434,8 +438,12 @@ export const ManualCryptoPayment = ({
             onClick={() => setSelectedCrypto('swarm')}
           >
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                SW
+              <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                <img
+                  src="/SWARM.png"
+                  alt="Swarm Logo"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div className="flex-1">
                 <p className="font-semibold text-base">Swarm (SWARM)</p>
