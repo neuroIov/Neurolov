@@ -17,6 +17,7 @@ interface CryptoAddress {
   chain: string; // e.g., 'solana', 'ethereum', 'bitcoin'
   price?: number; // Price in USD
   priceLastUpdated?: number;
+  tokenMint?: string; // For SPL tokens like SWARM
 }
 
 interface ManualCryptoPaymentProps {
@@ -139,10 +140,11 @@ export const ManualCryptoPayment = ({
     swarm: {
       symbol: 'SWARM',
       name: 'Swarm',
-      address: 'otgodXJDJFFip57AA43ERfDs8pcGviDd9oUJsnEcyai',
+      address: process.env.NEXT_PUBLIC_SOLANA_WALLET_ADDRESS || '2twCAHzwANMtUc55DhhgT767YdyhBTY98EecBwHJJsxm',
       chain: 'solana',
       price: 0,
-      priceLastUpdated: 0
+      priceLastUpdated: 0,
+      tokenMint: 'otgodXJDJFFip57AA43ERfDs8pcGviDd9oUJsnEcyai'
     },
   });
 
@@ -190,12 +192,12 @@ export const ManualCryptoPayment = ({
         // Format: solana:<address>?amount=<amount>&spl-token=<token>&reference=<ref>&label=<label>&message=<message>
         const params = new URLSearchParams();
         params.append('amount', cryptoAmount.toFixed(6));
-        params.append('spl-token', crypto.address); // SWARM token mint address
+        params.append('spl-token', crypto.tokenMint || 'otgodXJDJFFip57AA43ERfDs8pcGviDd9oUJsnEcyai'); // SWARM token mint address
         params.append('reference', referenceId);
         params.append('label', 'Compute Subscription');
         params.append('message', `Payment for $${amount} subscription in SWARM tokens`);
         
-        const paymentUrl = `solana:${process.env.NEXT_PUBLIC_SOLANA_WALLET_ADDRESS || '2twCAHzwANMtUc55DhhgT767YdyhBTY98EecBwHJJsxm'}?${params.toString()}`;
+        const paymentUrl = `solana:${crypto.address}?${params.toString()}`;
         console.log('Generated SWARM Payment URL:', paymentUrl);
         
         return paymentUrl;
